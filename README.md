@@ -560,7 +560,7 @@ if ( !selector ) {
 }
 ```
 
-##### `selector`可能性一: 字符串
+##### `selector`可能性二: 字符串
 示例情况:
 - `$('#div'), $('.box'), $('div'), $('div div.box'), $('<li>'), $('<li>1</li><li>2</li>')`
 - `$('<li>hello')`
