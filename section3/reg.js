@@ -76,10 +76,19 @@
 
 
 
+// 
 // var rquickExpr = /^(?:\s*(<[\w\W]+>)[^>]*|#([\w-]*))$/;
 // var str = '.data';	
 // var matchs = rquickExpr.exec(str);
-// console.log(matchs);	//匹配未通过
+// console.log(matchs);	//匹配未通过 [undefined,undefined,undefined]
+// var str = '<div>>';
+// matchs = rquickExpr.exec(str);
+// console.log(matchs);	//匹配通过	[<div>>,<div>>,undefined]
+
+// var str = '#id';
+// matchs = rquickExpr.exec(str);
+// console.log(matchs);    //匹配通过   [#id,undefined,id]
+
 
 
 
