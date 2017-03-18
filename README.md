@@ -1,7 +1,4 @@
-﻿#  jQuery2.0.3源码分析
-
-
-## 0.了解jQuery的这些属性和方法么？
+﻿## 0.了解jQuery的这些属性和方法么？
 
 ``` javascript
 
