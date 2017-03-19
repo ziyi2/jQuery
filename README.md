@@ -1439,3 +1439,165 @@ $.extend(true,d,e);
 console.log(d);		//{name: {familyName: 'zhang',age:23}} 保留d所有的属性familyName
 
 ```
+
+
+## 5. 工具方法
+
+利用`4. $.extend()`**拷贝继承**构建工具方法，工具方法是`jQuery`的最底层方法，通常实例方法中会调用工具方法
+
+``` javascript
+jQuery.extend({
+	expando: 唯一的jQuery字符串(内部使用)
+	noConflict: 防冲突
+
+})
+```
+
+### 5.1 $.expando
+- 唯一性
+
+>源码
+
+``` javascript
+//[351]
+// Unique for each copy of jQuery on the page
+//生成随机数并去掉小数点
+expando: "jQuery" + ( core_version + Math.random() ).replace( /\D/g, "" ),	
+```
+
+>内容解析
+>
+``` javascript
+console.log($.expando);	//jQuery20305959261594460556
+```
+
+
+### 5.2 $.noConflict
+- 防冲突
+
+>源码
+
+``` javascript
+
+[37~41]
+//在引用jQuery库之前有使用$命令的变量，则保存引用之前的变量
+// Map over jQuery in case of overwrite
+_jQuery = window.jQuery，
+
+// Map over the $ in case of overwrite
+_$ = window.$，
+
+
+//[353]
+noConflict: function( deep ) {
+	//在[37-41]利用_$缓存引用库之前的$值
+	//库加载完毕后[8826]先执行
+	//此时把$值在jQuery中的引用放弃掉
+	//详见(二)	
+	if ( window.$ === jQuery ) {
+		window.$ = _$;
+	}
+    //加入参数true以后和(二)一样，放弃掉jQuery变量的命名
+    if ( deep && window.jQuery === jQuery ) {
+		window.jQuery = _jQuery;
+	}
+	
+	//详见(一)
+	return jQuery;
+},
+
+
+//[8826]     
+window.jQuery = window.$ = jQuery
+```
+
+>内容解析
+
+(一)、`$`在引用`jQuery`库之后改变
+
+``` javascript
+var new$ = $.noConflict();	//创建$变量的副本
+$ = 2017;					//$本身的值改变
+
+new$(function(){
+    alert(new$().jquery);	//2.0.3 new$ = 未改变之前的$值
+    alert($);				//2017 $值被改变
+})
+```
+
+(二)、`$`在引用`jQuery`库之前已经存在
+
+``` javascript
+
+//保留引用库前的$
+<script>
+	var $ = 2017;
+</script>
+
+
+<script src='Jquery2.0.3.js'></script>
+
+<script>
+	$.noConflict();	//获取加载jQuery库之前的$变量值，并放弃$变量对于jQuery的意义
+	console.log($);	//2017
+</script>
+
+
+//保留引用库前的jQuery
+<script>
+	var jQuery = 2017;
+</script>
+
+
+<script src='Jquery2.0.3.js'></script>
+
+<script>
+       $.noConflict(true);	 //放弃掉jQuery
+	console.log(jQuery); //2017，仍然是引用jQuery库之前的jQuery变量
+</script>
+
+```
+
+### 5.3 $(function(){}) 
+
+- `DOMContentLoaded`事件(等文档流、普通脚本、延迟脚本加载完毕后触发)
+- `load`事件(等文档流、普通脚本、延迟脚本、异步脚本、图片等所有内容加载完毕后触发)
+
+>源码
+
+``` javascript
+//[182]
+// HANDLE: $(function)
+// Shortcut for document ready
+} else if ( jQuery.isFunction( selector ) ) {
+	//$(document).ready(function(){}) 调用了[240]的$().ready()
+	return rootjQuery.ready( selector );
+}
+
+// [240-245]
+ready: function( fn ) {
+    // 使用Promise的形式等待回调
+    // 创建了延迟对象
+    jQuery.ready.promise().done( fn );
+    return this;
+},
+
+
+
+```
+
+
+>内容解析
+
+(一)、浏览器加载页面过程
+
+- 创建`Document`对象，解析Web页面，解析HTML元素和相应的文本内容添加`Element`对象和`Text`节点到文档中，此时`document.readyState = 'loading'`
+- 当HTML解析器遇到没有`async`和`defer`属性的`<script>`元素时，把元素添加到文档中，执行内部脚步或引用的外部脚本，这些脚本会同步执行，并且脚本下载和执行时HTML解析器暂停解析HTML元素，此时如果脚本中使用了`document.write()`方法，就会把该方法的内容插入输入流中，解析器恢复时这些文本会成为文档的一部分
+- 当解析器遇到了`async`属性的`<script>`元素时，开始下载脚本文本，并继续解析文档，意思是`async`属性的`<script>`元素异步执行，不会阻塞文档的解析，需要注意异步脚本禁止使用`document.write()`方法，因为此时文档不会暂停等待`document.write()`内容的插入，而是继续下载执行
+- 如果文档(文档流，不包括图片等其他内容)析完，则`document.readyState = 'interactive'`
+- 此时因为文档解析完毕，执行带有属性`defer`的`<script>`脚本，需要注意`async`属性的脚本如果在文档流解析完毕还没有执行完毕时此时也会继续执行，`defer`的`<script>`脚本可以访问完整的文档树，因为此时文档流已经解析完毕，但是也禁止使用`document.write()`方法
+- 如果 带有属性`defer`的`<script>`脚本加载完毕，浏览器在`Document`对象上触发了`DOMContentLoaded`事件，这标志着程序执行从同步脚本执行 阶段转换到了异步时间驱动阶段，这时异步脚本能可能没有执行完成。
+- 文档已经完全解析完成，浏览器可能还在等待其他内容载入，比如图片，当所有的内容载入完成并且所有的异步脚本完成载入和执行，`document.readState='complete'`， Web浏览器触发`Window`对象上的`load`事件
+- 之后就是调用异步事件,以异步响应用户输入事件，网络事件，计时器过期等
+
+
