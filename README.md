@@ -26,6 +26,7 @@
  $().sort()
  $().splice()
  
+ 
  //静态方法/工具方法
  $.parseHTML()
  $.merge()
@@ -34,6 +35,9 @@
  $.isFunction()
  $.each()
  $.map()
+ $.extend()
+ $.fn.extend()  //拷贝继承，感觉像是原型继承的深一步扩展
+ $.isArray()
 ```
 
 
@@ -44,7 +48,7 @@
 (function(window， undefined) {
    [21~91]     : $自执行匿名函数的私有属性      
    [96~283]    : $jQuery对象的属性和方法     
-   [285~347]   : $继承方法                 
+   [285~347]   : $拷贝继承                 
    [349~817]   : $工具方法(静态方法)
    [877~2856]  : $复杂选择器Sizzle
    [2880~3042] : $回调对象
@@ -72,7 +76,7 @@
 
 >内容解析
 
-(一)、自执行匿名函数创建了特殊的函数作用域，该作用域的代码不会和匿名函数外部的同名函数冲突.
+(一)、自执行匿名函数创建了特殊的函数作用域，该作用域的代码不会和匿名函数外部的同名函数冲突
 ``` javascript
 (function(){
 	//局部函数
@@ -104,7 +108,7 @@ a();    //out a
 })();
 ```
 
-(三)、`undefined`保证不被修改，可以被压缩，也可以缩短查找undefined的作用域链
+(三)、`undefined`保证不被修改，可以被压缩，也可以缩短查找`undefined`的作用域链
 ``` javascript
  //自执行内部的undefined变量不会被外部的情况修改，低版本IE浏览器可以修改undefined的值
 (function(window，undefined){
@@ -1191,4 +1195,247 @@ console.log(arr);   //[a0,b1,c2]
 push: core_push,
 sort: [].sort,
 splice: [].splice
+```
+
+## 4. 拷贝继承
+
+>源码
+
+``` javascript
+//[285]
+//详见(一)、(二)、(三)
+jQuery.extend = jQuery.fn.extend = function() {
+	var options, name, src, copy, copyIsArray, clone,
+		target = arguments[0] || {},
+		i = 1,
+		length = arguments.length,
+		deep = false;
+
+	// Handle a deep copy situation
+	//布尔值true则是深拷贝
+	if ( typeof target === "boolean" ) {
+		deep = target;
+		//目标对象变成了第二项
+		target = arguments[1] || {};  
+		// skip the boolean and the target
+		i = 2;
+	}
+
+	// Handle case when target is a string or something (possible in deep copy)
+	//目标元素不是对象则变成空对象
+	if ( typeof target !== "object" && !jQuery.isFunction(target) ) {
+		target = {};
+	}
+
+	// extend jQuery itself if only one argument is passed
+	//如果参数只有1个，则是扩展jQuery自身的方法，详见(一)
+	if ( length === i ) {
+		target = this;
+		--i;
+	}
+
+	//多个对象参数
+	for ( ; i < length; i++ ) {
+		// Only deal with non-null/undefined values
+		//第二个开始的参数是不是空
+		if ( (options = arguments[ i ]) != null ) {
+			// Extend the base object
+			for ( name in options ) {
+				src = target[ name ];
+				copy = options[ name ];
+
+				// Prevent never-ending loop
+				//防止循环引用 例如 var a = {}; $.extend(a,{name:a})
+				if ( target === copy ) {
+					continue;
+				}
+
+				// Recurse if we're merging plain objects or arrays
+				//深拷贝，被拷贝的值必须是对象或数组，利用递归，详见(三)
+				if ( deep && copy && ( jQuery.isPlainObject(copy) || (copyIsArray = jQuery.isArray(copy)) ) ) {
+					if ( copyIsArray ) {
+						copyIsArray = false;
+						//如果目标自带的值有，则选择目标自带的值
+						clone = src && jQuery.isArray(src) ? src : [];
+					} else {
+					    //如果目标自带的值有，则选择目标自带的值,详见(三)
+						clone = src && jQuery.isPlainObject(src) ? src : {};
+					}
+
+					// Never move original objects, clone them
+					target[ name ] = jQuery.extend( deep, clone, copy );
+
+				// Don't bring in undefined values
+				//浅拷贝
+				} else if ( copy !== undefined ) {
+					target[ name ] = copy;
+				}
+			}
+		}
+	}
+
+	// Return the modified object
+	return target;
+};
+```
+
+>内容解析
+
+- `jQuery`允许扩展新的静态方法(只有一个对象参数)
+- `jQuery`允许扩展新的实例方法(只有一个对象参数)
+- 扩展自定义对象的属性和方法(多个对象参数)
+- 深浅拷贝
+
+(一)、扩展构造函数的静态方法和实例方法
+
+
+``` javascript
+//[96]
+jQuery.fn = jQuery.prototype;
+//[285]
+jQuery.extend = jQuery.fn.extend; //jQuery.prototype.extend;
+
+//jQuery.extend 是静态方法
+//jQuery.prototype.extend 实例方法，原型对象的方法会被实例化对象继承
+
+
+$.extend({
+    f1: function(){
+        alert(1);
+	},
+	f2: function(){
+        alert(2);
+	}
+});
+
+//静态方法
+$.f1();		//1
+$.f2();		//2
+
+$.fn.extend({
+    f1: function(){
+        alert(1);
+    },
+    f2: function(){
+        alert(2);
+    }
+});
+
+//实例方法,jQuery允许我们在构造函数上扩展新的实例方法
+$().f1();	//1
+$().f2();	//2
+
+```
+
+(二)、扩展自定义对象的属性和方法
+
+``` javascript
+//多个参数时,后面的参数的对象属性和方法扩展到第一个参数对象
+var obj = {};
+
+$.extend(
+	obj,
+	{
+		f1: function(){
+			alert(1);
+			},
+		f2: function(){
+			alert(2);
+			}
+	},
+	{
+		name: 'obj_extend'
+	}
+);
+
+console.log(obj); //{f1,f2,name};
+```
+
+(三)、深浅拷贝
+
+``` javascript
+var a = {name:'ziy2',age:23};
+var b = a;				//浅拷贝
+console.log(a===b);		//true b是a的副本，引用了同一个内存块
+b.name = 'ziyi3';
+console.log(a.name);	//ziyi3
+
+var d = {name:'ziyi5',age:{age:22}};
+var f = {};
+
+for(var key in d) {		//仍然是浅拷贝
+    f[key] = d[key];
+}
+
+f.age.age = 25;
+f.name = 'ziyi6';
+console.log(d.age.age);	//25 说明age属性仍然是浅拷贝
+console.log(d.name);	//ziyi5
+
+
+//以下可能是一个深拷贝的函数，其实简单理解就是深拷贝就是两个不同的内存块，浅拷贝就是两个都有引用同一内存块
+var deepCopy= function(source) { 
+var result={};
+for (var key in source) {
+      result[key] = typeof source[key]===’object’? deepCoyp(source[key]): source[key];
+   } 
+   return result; 
+}
+
+```
+
+`jQuery`中默认是浅拷贝
+
+
+``` javascript
+var
+	a = {},
+	b = {
+	     name: 'ziyi2',
+         age: {
+             age: 23
+         }
+     };
+
+$.extend(a,b);
+
+b.age.age = 24;
+console.log(a.age.age);	//24 浅拷贝
+
+b.name = 'ziyi3';	
+console.log(a.name);	//ziyi2 基本类型的值不受影响
+```
+
+设置为深拷贝
+
+``` javascript
+var
+	a = {},
+	b = {
+              name: 'ziyi2',
+              age: {
+                  age: 23
+              }
+          };
+
+$.extend(true,a,b);		//添加参数true
+
+b.age.age = 24;
+console.log(a.age.age);	//23 深拷贝
+
+b.name = 'ziyi3';
+console.log(a.name);	//ziyi2 
+
+
+//保留原有的属性
+var c = {name: {familyName: 'zhu'}},
+    d = {name: {familyName: 'zhang'}};
+
+$.extend(true,c,d);
+console.log(c);		//{name: {familyName: 'zhang'}}
+
+var e = {name: {age: 23}};
+$.extend(true,d,e);
+console.log(d);		//{name: {familyName: 'zhang',age:23}} 保留d所有的属性familyName
+
 ```
