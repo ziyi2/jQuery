@@ -25,7 +25,8 @@
  $().push()
  $().sort()
  $().splice()
- 
+ $(function(){})
+ $(document).ready()
  
  //静态方法/工具方法
  $.parseHTML()
@@ -38,6 +39,15 @@
  $.extend()
  $.fn.extend()  //拷贝继承，感觉像是原型继承的深一步扩展
  $.isArray()
+ $.expando
+ $.noConflict()
+ $.ready()
+ $.holdReady()
+ $.getScript()
+ $.isFunction()
+ $.isNumeric()
+ $.type()
+ $.each()
 ```
 
 
@@ -140,12 +150,12 @@ rootjQuery = jQuery(document);
 
 ### 2.2 readyList
 
->源码
-``` javascript
-//[25~26]
-// The deferred used on DOM ready
-readyList，
-```
+- 用于加载DOM
+- 延迟对象
+
+详见`5.3 $.ready()`
+
+
 
 ### 2.3 core_strundefined 
 
@@ -346,6 +356,8 @@ rdashAlpha = /-([\da-z])/gi，
 - 回调函数
 ### 2.13  completed
 - 回调函数
+
+详见`5.3 $.ready()`
 
 
 ## 3. jQuery对象的属性和方法
@@ -1447,9 +1459,17 @@ console.log(d);		//{name: {familyName: 'zhang',age:23}} 保留d所有的属性fa
 
 ``` javascript
 jQuery.extend({
-	expando: 唯一的jQuery字符串(内部使用)
-	noConflict: 防冲突
-
+	expando:       唯一的jQuery字符串(内部使用)
+	noConflict:    防冲突
+	isReady:       DOM是否加载完毕(内部使用)
+	readyWait:     等待异步文件先执行后执行DOM加载完毕事件的计数器(内部使用)
+	holdReady():   推迟DOM触发
+	ready():       准备触发DOM加载完毕后的事件
+	isFunction():  是否为函数
+	isArray():     是否为数组(不支持IE6、7、8)
+	isWindow():    是否为window对象
+	isNumeric():   是否为数字
+	type():        判断数据类型
 })
 ```
 
@@ -1558,23 +1578,29 @@ new$(function(){
 
 ```
 
-### 5.3 $(function(){}) 
-
+### 5.3 $.ready()
+- `DOM`加载完毕的触发事件
+- `$(function(){})`
+- `$(document).ready()`
 - `DOMContentLoaded`事件(等文档流、普通脚本、延迟脚本加载完毕后触发)
 - `load`事件(等文档流、普通脚本、延迟脚本、异步脚本、图片等所有内容加载完毕后触发)
 
 >源码
 
 ``` javascript
-//[182]
+
+//历程： $(function(){}) -> $(document).ready() -> $.ready.promise().done(fn) -> complete()回调 -> $.ready()
+
+// 步骤一、[182]
 // HANDLE: $(function)
 // Shortcut for document ready
 } else if ( jQuery.isFunction( selector ) ) {
 	//$(document).ready(function(){}) 调用了[240]的$().ready()
-	return rootjQuery.ready( selector );
+	return rootjQuery.ready( selector ); 
 }
 
-// [240-245]
+// 步骤二、[240-245] 
+//$().ready()
 ready: function( fn ) {
     // 使用Promise的形式等待回调
     // 创建了延迟对象
@@ -1583,9 +1609,96 @@ ready: function( fn ) {
 },
 
 
+// 步骤三、[819]
+jQuery.ready.promise = function( obj ) {	
+    //第一次是空对象，可以进入if
+	if ( !readyList ) {
+		//创建延迟对象
+		readyList = jQuery.Deferred();
+
+		// Catch cases where $(document).ready() is called after the browser event has already occurred.
+		// we once tried to use readyState "interactive" here, but it caused issues like the one
+		// discovered by ChrisS here: http://bugs.jquery.com/ticket/12282#comment:15
+
+		//if和else都是在DOM加载完毕后执行$.ready()
+		
+		//详见(一) DOM加载完毕 IE会提前出发
+		if ( document.readyState === "complete" ) {
+			// Handle it asynchronously to allow scripts the opportunity to delay ready
+			// hack写法，兼容IE
+			setTimeout( jQuery.ready );
+
+		} else {
+
+			// Use the handy event callback
+			// DOM没有加载完毕时，监测
+			document.addEventListener( "DOMContentLoaded", completed, false );
+
+			// A fallback to window.onload, that will always work
+			// 如果浏览器有缓存事件，则load会比DOMContentLoaded先触发，所以两个事件都要监听
+			window.addEventListener( "load", completed, false );
+		}
+	}
+	//promise的状态不能被修改
+	return readyList.promise( obj );
+};
+
+
+
+//步骤四、[89] 
+//complete()回调
+//这是一个自执行匿名函数中的局部函数，在自执行匿名函数内都可见，所以上述监听事件可以直接调用
+
+// The ready event handler and self cleanup method
+completed = function() {
+    //尽管在jQuery.ready.promise两个事件都监听了，但是这里都取消了，所以任何一个监听事件触发，另外一个监听事件因为取消了不会再次执行，jQuery.ready();只会执行一次
+	document.removeEventListener( "DOMContentLoaded", completed, false );
+	window.removeEventListener( "load", completed, false );
+	jQuery.ready();
+};
+
+//步骤五、[382] 
+//$.ready()
+
+// Handle when the DOM is ready
+ready: function( wait ) {
+	//和$.holdRady()有关
+	//--jQuery.readyWait如果hold了N次，则不会触发DOM加载事件，而是返回
+	//如果jQuery.isReady为true则已经触发了一次了
+	// Abort if there are pending holds or we're already ready
+	if ( wait === true ? --jQuery.readyWait : jQuery.isReady ) {
+		return;
+	}
+
+	// Remember that the DOM is ready
+	jQuery.isReady = true;
+
+	// If a normal DOM Ready event fired, decrement, and wait if need be
+	// 如果释放hold,则全部释放完后才能继续执行下面的DOM加载事件，否则return
+	if ( wait !== true && --jQuery.readyWait > 0 ) {
+		return;
+	}
+	
+	// 在jQuery.ready.promise()中的延迟对象触发回调
+	// 触发步骤二的jQuery.ready.promise().done( fn );回调函数done()
+	// 平时用readyList.resolve()
+	// 但是readyList.resolveWith()可以传递参数
+	// 使this指向document
+	// 传入的参数指向jQuery,详见(二)
+	// If there are functions bound, to execute
+	readyList.resolveWith( document, [ jQuery ] );
+
+	// Trigger any bound ready events
+	//主动触发
+	//$(documnent).on('ready',function(){
+	//})
+	//详见(三)
+	if ( jQuery.fn.trigger ) {
+		jQuery( document ).trigger("ready").off("ready");
+	}
+},
 
 ```
-
 
 >内容解析
 
@@ -1601,3 +1714,333 @@ ready: function( fn ) {
 - 之后就是调用异步事件,以异步响应用户输入事件，网络事件，计时器过期等
 
 
+(二)、`readyList.resolveWith( document, [ jQuery ] );`
+
+- 参数一是`context`，即传递上下文
+- 参数二是一个需要传入的参数数组给完成的回调函数
+
+``` javascript
+$(function(obj){
+    console.log(this); //this指向document这个DOM对象
+    console.log(obj);  //obj指向jQuery对象
+	/*function ( selector, context ) {
+           	The jQuery object is actually just the init constructor 'enhanced'
+          	return new jQuery.fn.init( selector, context, rootjQuery );
+      	}
+	*/
+})
+```
+
+(三)、`jQuery`触发`ready`的三种方法
+
+- `$(function(){})`
+- `$(document).ready(function(){})`
+- `$(document).on('ready',function(){})`
+
+
+
+### 5.4 $.holdReady()
+
+- 推迟`DOM`加载完毕事件的触发
+
+>源码
+
+``` javascript
+// Is the DOM ready to be used? Set to true once it occurs.
+//为真说明DOM加载完成事件已经触发
+isReady: false,
+
+// A counter to track how many items to wait for before
+// the ready event fires. See #6781
+readyWait: 1,
+
+// Hold (or release) the ready event
+holdReady: function( hold ) {
+	if ( hold ) {
+		//如果有多个需要hold的异步文件，则++多次
+		jQuery.readyWait++;
+	} else {
+		jQuery.ready( true );
+	}
+},
+```
+
+
+
+>内容解析
+
+``` javascript
+//异步加载外部文件，需要注意async属性只能用于外部文件
+$.getScript('a.js', function(){
+
+});
+
+$(function () {
+	alert(2);
+      });
+
+//此时先2后1,DOMContentLoaded事件比异步事加载javascript事件先触发
+```
+
+解决异步文件先执行，然后再执行`DOM`加载完毕事件
+
+``` javascript
+//延迟DOM加载完成事件
+$.holdReady(true);
+
+//异步加载外部文件，需要注意async属性只能用于外部文件
+$.getScript('a.js', function(){
+    //a.js　-> alert(1)
+	//释放延迟
+	$.holdReady(false);
+});
+
+$(function () {
+	alert(2);
+});
+//此时先1后2
+```
+
+### 5.5 $.isFunction()
+
+>源码
+
+``` javascript
+// See test/unit/core.js for details concerning isFunction.
+// Since version 1.3, DOM methods and functions like alert
+// aren't supported. They return false on IE (#2968).
+// [409]
+// 原生的方法alert在IE8下使用typeof alert不返回function而是返回object
+// 所以jQuery放弃IE8的检测方法
+isFunction: function( obj ) {
+	//通过$.type()检测
+	return jQuery.type(obj) === "function";
+},
+```
+
+>内容解析
+
+``` javascript
+function f() {
+}
+console.log($.isFunction(f));	//true
+```
+
+### 5.6 $.isArray()
+
+- 缩短查找的作用域链
+- 不支持IE6、7、8
+
+>源码
+
+``` javascript
+//[413]
+isArray: Array.isArray,
+```
+
+### 5.5 $.isWindow()
+
+>源码
+
+``` javascript
+//[415]
+isWindow: function( obj ) {
+	//obj != null 详见(一)，除了传入null和undefined不执行第二个&&
+	//其他都会执行第二个&&进行判断，因为null和undefined不是包装对象，不可能有.window这样的属性
+	//obj.window 详见(二)
+	return obj != null && obj === obj.window;
+},
+```
+
+>内容解析
+
+(一)、`null`非包装对象
+
+``` javascript
+console.log(null == null);			//true
+console.log(undefined == null);		//true
+console.log(false == null);			//false
+console.log({} == null);			//false
+console.log([] == null);			//false
+```
+
+(二)、`window`对象
+
+- 全局对象
+- 浏览器窗口
+
+``` javascript
+obj === obj.window	//全局对象下的浏览器窗口属性
+```
+
+### 5.6 $.isNumeric()
+
+>源码
+
+``` javascript
+isNumeric: function( obj ) {
+	//parseFloat转化非数字是NaN
+	//判断数字是否是有限的数字
+	return !isNaN( parseFloat(obj) ) && isFinite( obj );
+},
+```
+
+>内容解析
+
+``` javascript
+console.log(typeof NaN);	//number，所以不能用typeof来判断是否为数字
+```
+
+### 5.7 $.type()
+
+
+
+>源码
+
+``` javascript
+//[423]
+type: function( obj ) {
+	//null或undefined
+	if ( obj == null ) {
+		//转字符串
+		return String( obj );  
+	}
+	// Support: Safari <= 5.1 (functionish RegExp)
+	//如果是对象或函数，兼容性，Safari5.1
+	return typeof obj === "object" || typeof obj === "function" ?
+		//引用数据类型检测
+		class2type[ core_toString.call(obj) ] || "object" :
+		//基本数据类型检测
+		typeof obj;
+},
+
+
+
+// Populate the class2type map
+// [844]
+// 这个写法很巧妙
+// class2type["object Number"] = 'number'
+jQuery.each("Boolean Number String Function Array Date RegExp Object Error".split(" "), function(i, name) {
+	class2type[ "[object " + name + "]" ] = name.toLowerCase();
+});
+```
+
+>内容解析
+
+(一)、原生的`typeof`更丰富
+
+``` javascript
+var a = [],
+	b = {},
+	c = 'string',
+	d = null,
+	e = NaN,
+	f = undefined,
+	g = 123,
+	h = new Date;
+
+console.log(typeof a);	//object
+console.log(typeof b);	//object
+console.log(typeof c);	//string
+console.log(typeof d);	//object
+console.log(typeof e);	//number
+console.log(typeof f);	//undefined
+console.log(typeof g);	//number
+console.log(typeof h);	//object
+
+console.log($.type(a));	//array
+console.log($.type(b));	//object
+console.log($.type(c));	//string
+console.log($.type(d));	//null
+console.log($.type(e));	//number
+console.log($.type(f));	//undefined
+console.log($.type(g));	//number
+console.log($.type(h));	//date
+```
+
+
+(二)、`Object.prototype.toString().call()`
+
+``` javascript
+console.log(Object.prototype.toString.call([]));	//[object Array]
+console.log({}.toString.call({}));					//[object Object]
+```
+
+(三)、`instance of`
+
+需要注意使用`instance of`的方法进行类型检测需要考虑跨`iframe`子框架的检测问题
+
+
+```
+//a.js
+function Test() {
+    this.name = 'ziyi2';
+}
+
+//child_index.html
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+    <h2>child_index.html</h2>
+    <script src="a.js"></script>
+    <script>
+        var test = new Test();
+        document.test = test;
+        document.data = '123';
+    </script>
+</body>
+</html>
+
+//index.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8"/>
+	<title>Jquery2.0.3源码分析</title>
+
+</head>
+	
+<body>
+	<h1>index.html</h1>
+	<iframe src="child_index.html" frameborder="0" id="iframe"></iframe>
+	<div>1</div>
+	<div>2</div>
+	<div>3</div>
+
+	<script src='Jquery2.0.3.js'></script>
+	<script src="a.js"></script>
+	<script>
+
+		window.onload = function() {
+            var child_index= document.getElementById('iframe');		//注意与$('#iframe')的区别，一个是DOM对象，一个是jQuery对象
+
+            (function fn() {
+                if(!child_index && !child_index.contentWindow && !child_index.contentWindow.document) {
+                    setTimeout(fn(),0);
+                    console.log('document not ready...');
+                } else {
+                    var child_index_doc = child_index.contentWindow.document;	//获取子框架页面的文档对象
+                    console.log(child_index_doc.data);		//123
+                    console.log(child_index_doc.test);		//Test {name:ziyi2}
+					console.log(child_index_doc.test.name);	//ziyi2
+					console.log(child_index_doc.test instanceof Test);	//false
+					//可以发现使用子框架的Test实例对象不能使用instanceof进行检测
+                    var test1 = new Test();
+                    console.log(test1 instanceof Test);		//true
+
+                }
+            })()
+		}
+	</script>
+</body>
+</html>
+```
+
+>提示： 使用`child_index.html`页面实例化的对象和`index.html`页面实例化的对象是两个不同的执行环境，所以没办法进行检测
