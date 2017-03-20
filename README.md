@@ -26,7 +26,6 @@
  $().sort()
  $().splice()
  $(function(){})
- $(document).ready()
  
  //静态方法/工具方法
  $.parseHTML()
@@ -228,6 +227,8 @@ _$ = window.$，
 // [[Class]] -> type pairs
 class2type = {}，
 ```
+
+详见`5.7 $.type()`
 
 ### 2.7 core_deletedIds
 - 空数组
