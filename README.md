@@ -1,8 +1,9 @@
 ﻿
 ## 0.了解jQuery的这些属性和方法么？
 
-``` javascript
 
+
+``` javascript
  //实例对象
  $()
  $().jquery
@@ -47,6 +48,13 @@
  $.isNumeric()
  $.type()
  $.each()
+ $.isPlantObject()
+ $.isEmptyObject()
+
+
+
+
+
 ```
 
 
@@ -1460,17 +1468,19 @@ console.log(d);		//{name: {familyName: 'zhang',age:23}} 保留d所有的属性fa
 
 ``` javascript
 jQuery.extend({
-	expando:       唯一的jQuery字符串(内部使用)
-	noConflict:    防冲突
-	isReady:       DOM是否加载完毕(内部使用)
-	readyWait:     等待异步文件先执行后执行DOM加载完毕事件的计数器(内部使用)
-	holdReady():   推迟DOM触发
-	ready():       准备触发DOM加载完毕后的事件
-	isFunction():  是否为函数
-	isArray():     是否为数组(不支持IE6、7、8)
-	isWindow():    是否为window对象
-	isNumeric():   是否为数字
-	type():        判断数据类型
+	expando:                唯一的jQuery字符串(内部使用)
+	noConflict:             防冲突
+	isReady:                DOM是否加载完毕(内部使用)
+	readyWait:              等待异步文件先执行后执行DOM加载完毕事件的计数器(内部使用)
+	holdReady():            推迟DOM触发
+	ready():                准备触发DOM加载完毕后的事件
+	isFunction():           是否为函数
+	isArray():              是否为数组(不支持IE6、7、8)
+	isWindow():             是否为window对象
+	isNumeric():            是否为数字
+	type():                 判断数据类型
+	isPlantObject():        判断是否为对象字面量
+	isEmptyObject():        判断是否为空对象
 })
 ```
 
@@ -2045,3 +2055,156 @@ function Test() {
 ```
 
 >提示： 使用`child_index.html`页面实例化的对象和`index.html`页面实例化的对象是两个不同的执行环境，所以没办法进行检测
+
+
+### 5.7 $.isPlantObject()
+
+- 检测对象字面量
+
+>源码
+
+``` javascript
+isPlainObject: function( obj ) {
+	// Not plain objects:
+	// - Any object or value whose internal [[Class]] property is not "[object Object]"
+	// - DOM nodes
+	// - window
+	//1.如果不是对象,DOM节点和window用$.type方法会返回object
+	//2.如果是Node节点
+	//3.如果是window对象
+	if ( jQuery.type( obj ) !== "object" || obj.nodeType || jQuery.isWindow( obj ) ) {
+		return false;
+	}
+
+	// Support: Firefox <20
+	// The try/catch suppresses exceptions thrown when attempting to access
+	// the "constructor" property of certain host objects, ie. |window.location|
+	// https://bugzilla.mozilla.org/show_bug.cgi?id=814622
+	try {
+		//4.系统自带的对象,例如window.location,不是node节点，$.type又会返回object
+		//详见(一)、(二)
+		//obj.constructor指向对象的构造函数
+		//obj.constructor.prototype指向构造函数对应的原型对象
+		if ( obj.constructor &&
+				//obj.constructor.prototype.hasOwnProperty('isPrototypeOf')
+				//判断obj的原型是不是Object.prototype,而不是Array\Date等
+				//var arr = [];
+				//var bool = {}.hasOwnProperty.call( arr.constructor.prototype, "isPrototypeOf" );
+				//console.log(bool);	//false 
+				//如果是Array类型则return false表明不是对象字面量
+				!core_hasOwn.call( obj.constructor.prototype, "isPrototypeOf" ) ) {
+			return false;
+		}
+	} catch ( e ) {
+		return false;
+	}
+
+	// If the function hasn't returned already, we're confident that
+	// |obj| is a plain object, created by {} or constructed with new Object
+	return true;
+},
+```
+
+>内容解析
+
+(一)、`{}.hasOwnPrototype`
+
+- 判断是否是自身的属性
+- 判断是否是原型对象的属性
+
+``` javascript
+function Obj() {
+    this.name = 'ziyi2';
+    this.age = 23;
+}
+
+Obj.prototype.name = 'prototype.ziyi2';
+Obj.prototype.addr = 'zjut';
+
+//是否是原型对象的属性和方法
+function hasPrototypeProperty(obj,key) {
+    //1.如果是自己的属性返回false，表明不是原型对象的属性
+    //2.如果能使用in遍历，1返回true,则是原型对象的属性，使用in可以遍历自己的属性和原型对象的属性
+    return !obj.hasOwnProperty(key) && (key in obj);
+}
+
+var obj = new Obj();
+
+alert(hasPrototypeProperty(obj,'name'));		//false
+alert(hasPrototypeProperty(obj,'age'));			//false
+alert(hasPrototypeProperty(obj,'addr'));		//true
+```
+
+(二)、`isPrototypeOf`
+
+创建了自定义的构造函数后，其原型对象的默认只会取得`constructor`属性，其余都是从`Object`继承而来，当调用构造函数创建新实例后，该实例内部将包含一个指向构造函数原型对象的指针（`[[Prototype]]` 内部属性，注意是实例的属性而非构造函数的属性），脚本中没有标准的方式访问`[[Prototype]]`，但在一些浏览器诸如Firefox、Safari、Chrome在每个对象上都支持属性`__proto__`，这个指针连接存在于实例对象与构造函数的原型对象之间，不是实例对象与构造函数之间，调用构造函数创建的实例都有`[[Prototype]]`属性，但是无法访问。唯一的方法是可以通过`isPrototypeOf()`方法来确定实例对象和原型对象之间是否存在这种关系。
+
+``` javascript
+function Obj() {
+    this.name = 'ziyi2';
+	this.age = 23;
+}
+
+Obj.prototype.name = 'prototype.ziyi2';
+Obj.prototype.addr = 'zjut';
+
+function hasPrototypeProperty(obj,key) {
+    return !obj.hasOwnProperty(key) && (key in obj);
+}
+
+
+var obj = new Obj();
+
+console.log(Obj.prototype.isPrototypeOf(obj));		//true
+console.log(Object.prototype.isPrototypeOf(obj));	//true
+
+
+
+//来个原型链
+var data = new Date;
+console.log(Date.prototype.isPrototypeOf(data));				//true
+console.log(Object.prototype.isPrototypeOf(Date.prototype));	//true
+console.log(Object.prototype.isPrototypeOf(data));				//true
+// data -> Date.prototype 实例对象和构造函数对应的原型对象之间的关系
+// Date.prototype -> Object.prototype Date.prototype相对于Object.prototype而言就是实例对象
+```
+
+`isPrototypeOf`属性是`Object.prototype`的自有属性，其他对象所持有的该属性都是继承的。
+
+
+```
+//是否是原型对象的属性和方法
+function hasPrototypeProperty(obj,key) {
+    //1.如果是自己的属性返回false，表明不是原型对象的属性
+    //2.如果能使用in遍历，1返回true,则是原型对象的属性，使用in可以遍历自己的属性和原型对象的属性
+    return !obj.hasOwnProperty(key) && (key in obj);
+}
+
+//Obeject.prototype自有的属性isPrototypeOf
+console.log(Object.prototype.hasOwnProperty('isPrototypeOf'));		//true
+//Date的该属性是原型对象Obeject.prototype那里继承过来的
+console.log(hasPrototypeProperty(Date,'isPrototypeOf'));			//true
+```
+
+(三)、`try{} catch{}`
+
+需要补上详细信息.
+
+
+### 5.7 $.isEmptyObject()
+
+>源码
+
+```
+isEmptyObject: function( obj ) {
+	var name;
+	//可以遍历原型对象的属性和方法
+	//for-in只遍历可枚举的属性
+	//原型对象的系统自带属性可能是不可枚举的，所以虽然可以遍历原型对象的属性和方法
+	//但是for in遍历不到系统自带的属性和方法，可以用来检测对象是否为空对象
+	for ( name in obj ) {
+		return false;
+	}
+	return true;
+},
+```
