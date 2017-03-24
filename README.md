@@ -1,4 +1,4 @@
-﻿
+
 ## 0.了解jQuery的这些属性和方法么？
 
 
@@ -50,8 +50,6 @@
  $.each()
  $.isPlantObject()
  $.isEmptyObject()
-
-
 
 
 
