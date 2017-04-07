@@ -1,55 +1,54 @@
 
 ## 0.了解jQuery的这些属性和方法么？
 
-
+>注意:  本版本jQuery只支持IE9以上的浏览器
 
 ``` javascript
- //实例对象
- $()
- $().jquery
- $()[]
- $().length
- $().context
- $().selector
- $().prevObject
- $().constructor()
+ /*实例对象*/
+ $()                                  # jQuery实例对象
+ $().jquery                           # 版本号属性
+ $()[]                                # DOM元素
+ $().length                           # 匹配的DOM元素个数
+ $().context                          # 上下文环境
+ $().selector                         # jQuery对象的初始化选择器
+ $().prevObject                       # 当前入栈的jQuery实例对象
+ $().constructor()                    # jQuery构造函数
  $().find()
- $().toArray()
- $().get()
- $().pushStack() 
- $().slice()
- $().ready()
- $().first()
- $().last()
- $().eq()
- $().map()
- $().push()
- $().sort()
- $().splice()
- $(function(){})
- 
+ $().toArray()                        # 转数组(可对外)
+ $().get()                            # $()[num]或原生数组
+ $().pushStack()                      # 堆栈
+ $().slice()                          # DOM集合的截取(使用了堆栈方法,返回的仍然是$而不是特定的DOM元素对象)
+ $().ready()                          # DOM加载
+ $().first()                          # 集合的第一项(相当于在栈上又堆了一层,仍然是jQuery实例对象)
+ $().last()                           # 集合的最后一项(相当于在栈上又堆了一层,仍然是jQuery实例对象)
+ $().eq()                             # 获取特定的DOM集合(使用了堆栈方法,返回的仍然是$而不是特定的DOM元素对象)
+ $().end():                           # 栈回溯，可以看做popStack()，
+ $().map()                            # 遍历集合并返回新集合(使用了堆栈方法)
+ $().push()                           # 内部增加性能使用(不建议对外)
+ $().sort()                           # 内部增加性能使用(不建议对外)
+ $().splice()                         # 内部增加性能使用(不建议对外)
+ $(function(){})                      # DOM加载
+
  //静态方法/工具方法
- $.parseHTML()
- $.merge()
- $.makeArray()
- $.isPlainObject()
- $.isFunction()
+ $.parseHTML()                        # 将字符串转成DOM数组
+ $.merge()                            # 对外是数组合并,对内可以将数组合并到类数组对象
+ $.makeArray()                        # 对外是转化为数组,对内可以转化为类数组对象
+ $.isPlainObject()                    # 检测是否是对象字面量
+ $.isFunction()                       # 检测是否为函数
  $.each()
  $.map()
- $.extend()
- $.fn.extend()  //拷贝继承，感觉像是原型继承的深一步扩展
- $.isArray()
- $.expando
- $.noConflict()
- $.ready()
- $.holdReady()
+ $.extend()                           # 扩展jQuery静态方法\实例方法以及扩展自定义对象的方法
+ $.fn.extend()                        # 扩展实例方法
+ $.isArray()                          # 内部使用(感觉有兼容性问题)
+ $.expando                            # 字符串唯一性
+ $.noConflict()                       # 防冲突
+ $.ready()                            # DOM加载
+ $.holdReady()                        # DOM延迟加载(例如要先执行异步加载的JS文件)
  $.getScript()
- $.isFunction()
- $.isNumeric()
- $.type()
- $.each()
- $.isPlantObject()
- $.isEmptyObject()
+ $.isNumeric()                        # 判断是否为数字
+ $.type()                             # 引用类型和基本类型检测
+ $.each()                             # 遍历
+ $.isEmptyObject()                    # 检测是否是空的对象字面量
 
 
 
@@ -61,9 +60,9 @@
 
 ``` javascript
 (function(window， undefined) {
-   [21~91]     : $自执行匿名函数的私有属性      
-   [96~283]    : $jQuery对象的属性和方法     
-   [285~347]   : $拷贝继承                 
+   [21~91]     : $自执行匿名函数的私有属性
+   [96~283]    : $jQuery对象的属性和方法
+   [285~347]   : $拷贝继承
    [349~817]   : $工具方法(静态方法)
    [877~2856]  : $复杂选择器Sizzle
    [2880~3042] : $回调对象
@@ -104,7 +103,7 @@
 function a() {
     alert('out a');
 }
-a();    //out a   
+a();    //out a
 ```
 
 (二)、缩短作用域链
@@ -162,7 +161,7 @@ rootjQuery = jQuery(document);
 
 
 
-### 2.3 core_strundefined 
+### 2.3 core_strundefined
 
 - 兼容性
 
@@ -330,7 +329,7 @@ jQuery.prototype.css = function() {
     alert('css');
 }
 jQuery.prototype.init.prototype = jQuery.prototype; //jQuery.prototype.init = jQuery
-jQuery().css(); //init css 
+jQuery().css(); //init css
 //jQuery()返回jQuery实例的同时进行初始化工作
 //jQuery()类似于var a = new A(); a.init(); 两步操作
 ```
@@ -489,7 +488,7 @@ init: function( selector, context, rootjQuery ) {
 				//第一种情况匹配html标签
 			    //包括第一部分的if情况
 			    //需要注意的还有匹配html标签还是可以有context的
-			    //HANDLE: $(html) -> $(array) 
+			    //HANDLE: $(html) -> $(array)
 			    //这里当然是要把html转换成dom数组的形式
 			    //例如$('<li>1</li><li>2</li>')
 			    //转换成
@@ -516,7 +515,7 @@ init: function( selector, context, rootjQuery ) {
 
 					//合并DOM数组到this对象(this是json格式的类数组对象)
 					//这样之后才可以进行css(),appendTo()等操作(操作this对象)
-					// scripts is true for back-compat 
+					// scripts is true for back-compat
 					//详见(四）、(五)
 					jQuery.merge( this, jQuery.parseHTML(
 						match[1],
@@ -687,24 +686,24 @@ alert(o2.a);	//3
 ```
 
 ```
-function a() {  
-    this.attr = 0;  
-    this.func = function() {    
-        alert("a-func");    
+function a() {
+    this.attr = 0;
+    this.func = function() {
+        alert("a-func");
     }
-}   
-a.prototype = { 
-    func2:function() {  
-        alert("a-func2");   
-        return this;    
+}
+a.prototype = {
+    func2:function() {
+        alert("a-func2");
+        return this;
     },
-    func3:function() {  
-        alert('chain'); 
-        return this;    
-    }   
-}   
-//链式调用  
-var aa = (new a()).func2().func3();  
+    func3:function() {
+        alert('chain');
+        return this;
+    }
+}
+//链式调用
+var aa = (new a()).func2().func3();
 ```
 
 (二)、构造函数返回值`this`(可以理解为返回引用值类型有效么？)
@@ -712,7 +711,7 @@ var aa = (new a()).func2().func3();
 `this`作为类数组对象可以进行`for`循环处理，需要注意`$()`是`jQuery`对象，而`$()[0]`是DOM元素。
 
 
-| jQuery中构造函数的this属性(注意不是jQuery原型对象的属性) | 描述|  
+| jQuery中构造函数的this属性(注意不是jQuery原型对象的属性) | 描述|
 | :-------- | :--------|
 | `this`中数字属性,例如0,1,2…,也可以说是类数组对象的数字属性(本来数组里的索引就是特殊的字符串属性嘛,例如数组a[0]其实就是a[‘0’]嘛)| 每一个属性代表一个被选中的DOM元素|
 | `length`| 选取DOM元素数组的长度,也是`this`类数组的长度 |
@@ -753,12 +752,12 @@ var arr = jQuery.parseHTML(str,document,true);  //弹alert script标签被添加
 console.log(arr);
 /**
  * [
- *      0: li,  //变成DOM中的li节点了  
+ *      0: li,  //变成DOM中的li节点了
  *      1: li,
  *      2: script,
  *      length:3
  * ]
- * 
+ *
  */
 $.each(arr,function(i) {
     $('ul').append(arr[i]); //添加成功
@@ -767,7 +766,7 @@ $.each(arr,function(i) {
 //于是jQuery.merge起作用啦
 var a = [1,2],
     b = [3,4];
-    
+
 console.log($.merge(a,b));      //[1,2,3,4] 对外是数组合并的功能
 var json = {    //类数组对象
     0: 1,
@@ -777,7 +776,7 @@ var json = {    //类数组对象
 var arr = [3,4];
 console.log($.merge(json,arr)); //将json和数组合在了一起 源代码中的this就是json格式
 /**
- *  {   
+ *  {
     0: 1,
     1: 2,
     2: 3,
@@ -931,7 +930,7 @@ $div.toArray();		//把$div的this对象传入了toArray的core_slice.call( this 
 //返回一个新数组,该数组是原数组从tart到end(不包含该元素)的元素
 //以下是slice的源码,我们可以发现它其实是可以将类数组对象进行转换为数组
 //开头说明不光光是普通的数组,类数组对象,NamedNodeMap,NodeList,HTMLCollection,DOM objects 都是可以转化成数组的
-// This will work for genuine arrays, array-like objects, 
+// This will work for genuine arrays, array-like objects,
 // NamedNodeMap (attributes, entities, notations),
 // NodeList (e.g., getElementsByTagName), HTMLCollection (e.g., childNodes),
 // and will not fail on other DOM objects (as do DOM elements in IE < 9)
@@ -943,24 +942,24 @@ Array.prototype.slice = function(begin, end) {
   // For native Array objects, we use the native slice function
   // 以下方法普遍用来判断传入的参数是否是数组
   if (Object.prototype.toString.call(this) === '[object Array]'){
-    return _slice.call(this, begin, end); 
+    return _slice.call(this, begin, end);
   }
   // For array like object we handle it ourselves.、
   //如果是类数组对象
   var i, cloned = [],
     size, len = this.length;
-    
+
   // 如果start默认没有传入参数则是0
   // Handle negative value for "begin"
   var start = begin || 0;
   //如果start>=0则选择start,否则选择你懂得,防止负数的情况下少于数组的长度
   start = (start >= 0) ? start : Math.max(0, len + start);
- 
+
   //如果传入的end是number,则比较end和len,这种情况防止传入end大于数组本身的长度
   //如果不是,则默认处理成数组的长度
   // Handle negative value for "end"
   var upTo = (typeof end == 'number') ? Math.min(end, len) : len;
-  //当然end<0 
+  //当然end<0
   if (end < 0) {
     upTo = len + end;
   }
@@ -1041,7 +1040,7 @@ pushStack: function( elems ) {
 
 	// Add the old object onto the stack (as a reference)
 	// 老的对象被保留到一个prevObject属性
-	ret.prevObject = this; 
+	ret.prevObject = this;
 	ret.context = this.context;
 
 	// Return the newly-formed element set
@@ -1111,7 +1110,7 @@ $('<div>', {html: 'this is a div', class:'div'}).appendTo('body');  //添加在b
 $('<div>', {html: 'this is a div', class:'div'}).appendTo('body');  //添加在body的末尾
 $('<div>', {html: 'this is a div', class:'div'}).appendTo('body');  //添加在body的末尾
 $('<div>', {html: 'this is a div', class:'div'}).appendTo('body');  //添加在body的末尾
-$('div').slice(1,3).css('background','red');    //中间两个div背景变红色,注意和数组的方法一样不包括第三个 
+$('div').slice(1,3).css('background','red');    //中间两个div背景变红色,注意和数组的方法一样不包括第三个
 //其实是在4个div的基础上又入栈了被选中的两个div
 //如果利用end回溯
 $('div').slice(1,3).css('background','red').end().css('background','red');  //4个div背景色都变成了红色
@@ -1235,7 +1234,7 @@ jQuery.extend = jQuery.fn.extend = function() {
 	if ( typeof target === "boolean" ) {
 		deep = target;
 		//目标对象变成了第二项
-		target = arguments[1] || {};  
+		target = arguments[1] || {};
 		// skip the boolean and the target
 		i = 2;
 	}
@@ -1393,12 +1392,12 @@ console.log(d.name);	//ziyi5
 
 
 //以下可能是一个深拷贝的函数，其实简单理解就是深拷贝就是两个不同的内存块，浅拷贝就是两个都有引用同一内存块
-var deepCopy= function(source) { 
+var deepCopy= function(source) {
 var result={};
 for (var key in source) {
       result[key] = typeof source[key]===’object’? deepCoyp(source[key]): source[key];
-   } 
-   return result; 
+   }
+   return result;
 }
 
 ```
@@ -1421,7 +1420,7 @@ $.extend(a,b);
 b.age.age = 24;
 console.log(a.age.age);	//24 浅拷贝
 
-b.name = 'ziyi3';	
+b.name = 'ziyi3';
 console.log(a.name);	//ziyi2 基本类型的值不受影响
 ```
 
@@ -1443,7 +1442,7 @@ b.age.age = 24;
 console.log(a.age.age);	//23 深拷贝
 
 b.name = 'ziyi3';
-console.log(a.name);	//ziyi2 
+console.log(a.name);	//ziyi2
 
 
 //保留原有的属性
@@ -1491,7 +1490,7 @@ jQuery.extend({
 //[351]
 // Unique for each copy of jQuery on the page
 //生成随机数并去掉小数点
-expando: "jQuery" + ( core_version + Math.random() ).replace( /\D/g, "" ),	
+expando: "jQuery" + ( core_version + Math.random() ).replace( /\D/g, "" ),
 ```
 
 >内容解析
@@ -1522,7 +1521,7 @@ noConflict: function( deep ) {
 	//在[37-41]利用_$缓存引用库之前的$值
 	//库加载完毕后[8826]先执行
 	//此时把$值在jQuery中的引用放弃掉
-	//详见(二)	
+	//详见(二)
 	if ( window.$ === jQuery ) {
 		window.$ = _$;
 	}
@@ -1530,13 +1529,13 @@ noConflict: function( deep ) {
     if ( deep && window.jQuery === jQuery ) {
 		window.jQuery = _jQuery;
 	}
-	
+
 	//详见(一)
 	return jQuery;
 },
 
 
-//[8826]     
+//[8826]
 window.jQuery = window.$ = jQuery
 ```
 
@@ -1605,10 +1604,10 @@ new$(function(){
 // Shortcut for document ready
 } else if ( jQuery.isFunction( selector ) ) {
 	//$(document).ready(function(){}) 调用了[240]的$().ready()
-	return rootjQuery.ready( selector ); 
+	return rootjQuery.ready( selector );
 }
 
-// 步骤二、[240-245] 
+// 步骤二、[240-245]
 //$().ready()
 ready: function( fn ) {
     // 使用Promise的形式等待回调
@@ -1619,7 +1618,7 @@ ready: function( fn ) {
 
 
 // 步骤三、[819]
-jQuery.ready.promise = function( obj ) {	
+jQuery.ready.promise = function( obj ) {
     //第一次是空对象，可以进入if
 	if ( !readyList ) {
 		//创建延迟对象
@@ -1630,7 +1629,7 @@ jQuery.ready.promise = function( obj ) {
 		// discovered by ChrisS here: http://bugs.jquery.com/ticket/12282#comment:15
 
 		//if和else都是在DOM加载完毕后执行$.ready()
-		
+
 		//详见(一) DOM加载完毕 IE会提前出发
 		if ( document.readyState === "complete" ) {
 			// Handle it asynchronously to allow scripts the opportunity to delay ready
@@ -1654,7 +1653,7 @@ jQuery.ready.promise = function( obj ) {
 
 
 
-//步骤四、[89] 
+//步骤四、[89]
 //complete()回调
 //这是一个自执行匿名函数中的局部函数，在自执行匿名函数内都可见，所以上述监听事件可以直接调用
 
@@ -1666,7 +1665,7 @@ completed = function() {
 	jQuery.ready();
 };
 
-//步骤五、[382] 
+//步骤五、[382]
 //$.ready()
 
 // Handle when the DOM is ready
@@ -1687,7 +1686,7 @@ ready: function( wait ) {
 	if ( wait !== true && --jQuery.readyWait > 0 ) {
 		return;
 	}
-	
+
 	// 在jQuery.ready.promise()中的延迟对象触发回调
 	// 触发步骤二的jQuery.ready.promise().done( fn );回调函数done()
 	// 平时用readyList.resolve()
@@ -1912,7 +1911,7 @@ type: function( obj ) {
 	//null或undefined
 	if ( obj == null ) {
 		//转字符串
-		return String( obj );  
+		return String( obj );
 	}
 	// Support: Safari <= 5.1 (functionish RegExp)
 	//如果是对象或函数，兼容性，Safari5.1
@@ -2015,7 +2014,7 @@ function Test() {
 	<title>Jquery2.0.3源码分析</title>
 
 </head>
-	
+
 <body>
 	<h1>index.html</h1>
 	<iframe src="child_index.html" frameborder="0" id="iframe"></iframe>
@@ -2088,7 +2087,7 @@ isPlainObject: function( obj ) {
 				//判断obj的原型是不是Object.prototype,而不是Array\Date等
 				//var arr = [];
 				//var bool = {}.hasOwnProperty.call( arr.constructor.prototype, "isPrototypeOf" );
-				//console.log(bool);	//false 
+				//console.log(bool);	//false
 				//如果是Array类型则return false表明不是对象字面量
 				!core_hasOwn.call( obj.constructor.prototype, "isPrototypeOf" ) ) {
 			return false;
@@ -2205,4 +2204,69 @@ isEmptyObject: function( obj ) {
 	}
 	return true;
 },
+```
+
+### 5.8 $.error()
+
+- 抛出异常错误
+
+>源码
+
+```
+//[468]
+error: function( msg ) {
+	throw new Error( msg );
+},
+```
+
+### 5.8 $.parseHTML()
+
+- 将字符串转换成DOM数组
+
+>源码
+
+```
+// data: string of html
+	// context (optional): If specified, the fragment will be created in this context, defaults to document
+	// keepScripts (optional): If true, will include scripts passed in the html string
+	// context默认是document,如果被指定,则会在这个指定的context创建文档碎片
+	// keepScripts如果是true,则会在文档中创建script标签
+	parseHTML: function( data, context, keepScripts ) {
+		// 如果是空,或者不是字符串
+		if ( !data || typeof data !== "string" ) {
+			return null;
+		}
+		// 如果省略了context参数,则第二个参数变成了keepScripts
+		if ( typeof context === "boolean" ) {
+			keepScripts = context;
+			context = false;
+		}
+
+		// context默认是document对象
+		context = context || document;
+
+		// 匹配单标签 "<li></li>"
+		var parsed = rsingleTag.exec( data ),
+			scripts = !keepScripts && [];
+
+		// Single tag
+		// 单标签
+		if ( parsed ) {
+			// 单标签当然使用document.createElement方法创建DOM对象\
+			// 返回的仍然是数组
+			return [ context.createElement( parsed[1] ) ];
+		}
+
+
+		//多标签使用文档碎片的形式创建DOM对象数组
+		parsed = jQuery.buildFragment( [ data ], context, scripts );
+
+		// keepScripts = true scripts = false 因此不会移除script标签, 否则移除script 标签
+		if ( scripts ) {
+			jQuery( scripts ).remove();
+		}
+
+		// 返回的仍然是数组, jQuery.merge可以合并数组
+		return jQuery.merge( [], parsed.childNodes );
+	},
 ```
