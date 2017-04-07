@@ -48,7 +48,14 @@
  $.isNumeric()                        # 判断是否为数字
  $.type()                             # 引用类型和基本类型检测
  $.each()                             # 遍历
- $.isEmptyObject()                    # 检测是否是空的对象字面量
+ $.isEmptyObject()                    # 检测是否是空的对象字面了
+ $.error()                            # 抛弃异常
+ $.parseHTML()                      　# 将字符串转换成DOM数组
+ $.parseJSON()                     　 # JSON.parse()
+ $.parseXML()
+ $.globalEval()          　　　　　    #　类似于eval()
+ $.camelCase()            　　　　　　 # 转驼峰
+ $.nodeName()                        # 判断节点的Name
 
 
 
@@ -1478,6 +1485,16 @@ jQuery.extend({
 	type():                 判断数据类型
 	isPlantObject():        判断是否为对象字面量
 	isEmptyObject():        判断是否为空对象
+	error():                抛弃异常
+	parseHTML():            将字符串转换成DOM数组
+	parseJSON():            JSON.parse()
+	parseXML():
+	globalEval():           类似于eval()
+	camelCase():            转驼峰
+	nodeName():             判断节点的Name
+
+
+
 })
 ```
 
@@ -2219,7 +2236,7 @@ error: function( msg ) {
 },
 ```
 
-### 5.8 $.parseHTML()
+### 5.9 $.parseHTML()
 
 - 将字符串转换成DOM数组
 
@@ -2269,4 +2286,194 @@ error: function( msg ) {
 		// 返回的仍然是数组, jQuery.merge可以合并数组
 		return jQuery.merge( [], parsed.childNodes );
 	},
+```
+
+>内容解析
+
+``` javascript
+//单标签
+document.body.appendChild($.parseHTML('<li>1</li>')[0]); //将li元素插入body元素
+//多标签
+document.body.appendChild($.parseHTML('<li>1</li><li>1</li>')[0]);
+document.body.appendChild($.parseHTML('<li>1</li><li>1</li>')[1]);
+```
+
+
+
+### 5.10 $.parseJSON()
+
+>源码
+
+```
+parseJSON: JSON.parse,
+```
+
+
+### 5.11 $.parseXML()
+
+>源码
+
+```
+// Cross-browser xml parsing
+parseXML: function( data ) {
+	var xml, tmp;
+	if ( !data || typeof data !== "string" ) {
+		return null;
+	}
+
+	// Support: IE9
+	try {
+		tmp = new DOMParser();
+		xml = tmp.parseFromString( data , "text/xml" );
+	} catch ( e ) {
+		xml = undefined;
+	}
+
+	if ( !xml || xml.getElementsByTagName( "parsererror" ).length ) {
+		jQuery.error( "Invalid XML: " + data );
+	}
+	return xml;
+},
+```
+
+
+### 5.12 $.noop()
+
+>源码
+
+```
+noop: function() {},
+```
+
+
+### 5.12 $.globalEval()
+
+
+>源码
+
+```
+// Evaluates a script in a global context
+globalEval: function( code ) {
+	//详见(一)
+	var script,
+			indirect = eval;
+
+	code = jQuery.trim( code );
+
+	if ( code ) {
+		// If the code includes a valid, prologue position
+		// strict mode pragma, execute code by injecting a
+		// script tag into the document.
+		// 如果是在严格模式下,详见(二)
+		if ( code.indexOf("use strict") === 1 ) {
+			script = document.createElement("script");
+			script.text = code;
+			document.head.appendChild( script ).parentNode.removeChild( script );
+		} else {
+		// Otherwise, avoid the DOM node creation, insertion
+		// and removal by using an indirect global eval
+		    // 非严格模式使用全局eval()
+			indirect( code );
+		}
+	}
+},
+```
+
+>内容解析
+
+(一)、`eval`
+
+- 直接调用`eval`,总是在调用它的上下文作用域内执行
+- 其他的间接调用则使用全局对象作为其上下文作用域
+
+```
+var geval = eval; //使用别名调用eval将是全局eval，这算是间接调用
+var x = 'x global';
+var y = 'y global';
+function f(){
+    var x = 'x local';
+    eval("x += ' changed'"); //直接eval改变了局部变量的值
+    return x;
+}
+function g(){
+    var y = 'y local';
+    geval("y += ' changed'"); //间接调用改变了全局变量的值
+    return y;
+}
+console.log(f(),x);//x local changed      x global
+console.log(g(),y);//y local              y global changed
+//所以更可能会使用全局eval而不是局部eval
+```
+
+(二)、 严格模式
+
+```
+function fn(){
+    eval('var i = 0');
+    console.log(i);     //0
+}
+
+function f(){
+    "use strict";
+    eval('var i = 0');
+    console.log(i);     //Uncaught ReferenceError: i is not defined(…)
+}
+
+fn();
+f();
+```
+
+
+### 5.13 $.camelCase()
+
+- 字符串转驼峰
+
+>源码
+
+```
+
+//[81]
+rmsPrefix = /^-ms-/,
+rdashAlpha = /-([\da-z])/gi,
+
+// Used by jQuery.camelCase as callback to replace()
+fcamelCase = function( all, letter ) {
+	return letter.toUpperCase();
+},
+
+//[550]
+// Convert dashed to camelCase; used by the css and data modules
+// Microsoft forgot to hump their vendor prefix (#9572)
+camelCase: function( string ) {
+	//解析一
+	return string.replace( rmsPrefix, "ms-" ).replace( rdashAlpha, fcamelCase );
+},
+```
+
+
+>内容解析
+
+(一)、`string.replace`
+
+- 参数一 规定子字符串或要替换的模式的 RegExp 对象
+- 参数二 规定了替换文本或生成替换文本的函数
+
+
+
+### 5.14 $.nodeName()
+
+
+>源码
+
+```
+nodeName: function( elem, name ) {
+	return elem.nodeName && elem.nodeName.toLowerCase() === name.toLowerCase();
+},
+```
+
+
+>内容解析
+
+```
+console.log($.nodeName($('div')[0],'DIV')); //true
 ```
