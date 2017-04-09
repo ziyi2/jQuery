@@ -5,17 +5,14 @@
 
 ``` javascript
  /*实例对象*/
- $()                                  # jQuery实例对象
  $().jquery                           # 版本号属性
- $()[]                                # DOM元素
  $().length                           # 匹配的DOM元素个数
  $().context                          # 上下文环境
  $().selector                         # jQuery对象的初始化选择器
  $().prevObject                       # 当前入栈的jQuery实例对象
  $().constructor()                    # jQuery构造函数
- $().find()
- $().toArray()                        # 转数组(可对外)
- $().get()                            # $()[num]或原生数组
+ $().toArray()                        # DOM元素集(类数组对象)转数组
+ $().get()                            # $()[num],当不传参数时调用$().toArray()
  $().pushStack()                      # 堆栈
  $().slice()                          # DOM集合的截取(使用了堆栈方法,返回的仍然是$而不是特定的DOM元素对象)
  $().ready()                          # DOM加载
@@ -29,36 +26,44 @@
  $().splice()                         # 内部增加性能使用(不建议对外)
  $(function(){})                      # DOM加载
 
- //静态方法/工具方法
- $.parseHTML()                        # 将字符串转成DOM数组
- $.merge()                            # 对外是数组合并,对内可以将数组合并到类数组对象
- $.makeArray()                        # 对外是转化为数组,对内可以转化为类数组对象
- $.isPlainObject()                    # 检测是否是对象字面量
- $.isFunction()                       # 检测是否为函数
- $.each()
- $.map()
+
+ /*扩展对象*/
+ $.fn.extend()
  $.extend()                           # 扩展jQuery静态方法\实例方法以及扩展自定义对象的方法
- $.fn.extend()                        # 扩展实例方法
- $.isArray()                          # 内部使用(感觉有兼容性问题)
+
+
+ /*静态方法(工具方法)*/
  $.expando                            # 字符串唯一性
- $.noConflict()                       # 防冲突
- $.ready()                            # DOM加载
+ $.noConflict()                       # $变量防冲突
+ $.ready()                            # DOM加载(内部使用,工具方法)
  $.holdReady()                        # DOM延迟加载(例如要先执行异步加载的JS文件)
- $.getScript()
- $.isNumeric()                        # 判断是否为数字
+ $.isFunction()                       # 检测是否为函数
+ $.isArray()                          # 内部使用(有兼容性问题)
+ $.isWondow()                         # 检测是否为Window对象
+ $.isNumeric()                        # 检测是否为数字
  $.type()                             # 引用类型和基本类型检测
- $.each()                             # 遍历
- $.isEmptyObject()                    # 检测是否是空的对象字面了
- $.error()                            # 抛弃异常
+ $.isPlainObject()                    # 检测是否是对象字面量
+ $.isEmptyObject()                    # 检测是否是空的对象字面liang量
+ $.error()                            # 抛弃异常(内部工具方法)
  $.parseHTML()                      　# 将字符串转换成DOM数组
- $.parseJSON()                     　 # JSON.parse()
- $.parseXML()
- $.globalEval()          　　　　　    #　类似于eval()
- $.camelCase()            　　　　　　 # 转驼峰
- $.nodeName()                        # 判断节点的Name
-
-
-
+ $.parseJSON()                     　 # JSON.parse()(内部工具方法)
+ $.parseXML()                         #
+ $.noop()                             # 空函数
+ $.globalEval()          　　　　　    #　全局eval()
+ $.camelCase()            　　　　　　  # 转驼峰
+ $.nodeName()                         # 小写的节点名称
+ $.each()                             # 遍历(数组或类数组对象)
+ $.trim()                             # 去除首尾空字符(内部)
+ $.makeArray()                        # 对外是转化为数组,对内可以转化为类数组对象
+ $.inArray()                          # 索引元素的位置
+ $.merge()                            # 对外是数组合并,对内可以将数组合并到类数组对象
+ $.grep()                             # 过滤数组,返回新数组
+ $.map()                              # 遍历和修改数组元素的内容
+ $.guid                               # 绑定事件函数的唯一标识符
+ $.proxy()                            # 改变绑定事件的this指向
+ $.access()                           # 多函数工具方法(内部)
+ $.now()                              # 获取当前时间的毫秒数
+ $.swap()                             # 交换css样式
 ```
 
 
@@ -1492,9 +1497,18 @@ jQuery.extend({
 	globalEval():           类似于eval()
 	camelCase():            转驼峰
 	nodeName():             判断节点的Name
-
-
-
+	each():                 (类)数组遍历
+	trim():                 去掉首位空字符
+	makeArray():            转数组
+	inArray():              查看元素在数组中的索引
+	merge():                合并数组
+	grep():                 数组过滤
+	map():                  遍历数组并修改数组元素
+	guid:                   绑定事件ID
+	proxy():                改变this指向
+	access():               多功能函数底层方法
+	now():                  获取时间毫秒数
+	swap():                 样式交换
 })
 ```
 
@@ -1863,7 +1877,7 @@ console.log($.isFunction(f));	//true
 isArray: Array.isArray,
 ```
 
-### 5.5 $.isWindow()
+### 5.7 $.isWindow()
 
 >源码
 
@@ -1898,7 +1912,7 @@ console.log([] == null);			//false
 obj === obj.window	//全局对象下的浏览器窗口属性
 ```
 
-### 5.6 $.isNumeric()
+### 5.8 $.isNumeric()
 
 >源码
 
@@ -1916,7 +1930,7 @@ isNumeric: function( obj ) {
 console.log(typeof NaN);	//number，所以不能用typeof来判断是否为数字
 ```
 
-### 5.7 $.type()
+### 5.9 $.type()
 
 
 
@@ -2071,7 +2085,7 @@ function Test() {
 >提示： 使用`child_index.html`页面实例化的对象和`index.html`页面实例化的对象是两个不同的执行环境，所以没办法进行检测
 
 
-### 5.7 $.isPlantObject()
+### 5.10 $.isPlantObject()
 
 - 检测对象字面量
 
@@ -2205,7 +2219,7 @@ console.log(hasPrototypeProperty(Date,'isPrototypeOf'));			//true
 需要补上详细信息.
 
 
-### 5.7 $.isEmptyObject()
+### 5.11 $.isEmptyObject()
 
 >源码
 
@@ -2223,7 +2237,7 @@ isEmptyObject: function( obj ) {
 },
 ```
 
-### 5.8 $.error()
+### 5.12 $.error()
 
 - 抛出异常错误
 
@@ -2236,7 +2250,7 @@ error: function( msg ) {
 },
 ```
 
-### 5.9 $.parseHTML()
+### 5.13 $.parseHTML()
 
 - 将字符串转换成DOM数组
 
@@ -2300,7 +2314,7 @@ document.body.appendChild($.parseHTML('<li>1</li><li>1</li>')[1]);
 
 
 
-### 5.10 $.parseJSON()
+### 5.14 $.parseJSON()
 
 >源码
 
@@ -2309,7 +2323,7 @@ parseJSON: JSON.parse,
 ```
 
 
-### 5.11 $.parseXML()
+### 5.15 $.parseXML()
 
 >源码
 
@@ -2337,7 +2351,7 @@ parseXML: function( data ) {
 ```
 
 
-### 5.12 $.noop()
+### 5.16 $.noop()
 
 >源码
 
@@ -2346,7 +2360,7 @@ noop: function() {},
 ```
 
 
-### 5.12 $.globalEval()
+### 5.17 $.globalEval()
 
 
 >源码
@@ -2424,7 +2438,7 @@ f();
 ```
 
 
-### 5.13 $.camelCase()
+### 5.18 $.camelCase()
 
 - 字符串转驼峰
 
@@ -2460,7 +2474,7 @@ camelCase: function( string ) {
 
 
 
-### 5.14 $.nodeName()
+### 5.19 $.nodeName()
 
 
 >源码
@@ -2476,4 +2490,716 @@ nodeName: function( elem, name ) {
 
 ```
 console.log($.nodeName($('div')[0],'DIV')); //true
+```
+
+
+
+
+
+### 5.20 $.each()
+
+- 遍历
+- 参数一 index 
+- 参数二 value
+- 参数三 内部使用
+
+>源码
+
+```
+// args is for internal usage only
+each: function( obj, callback, args ) {
+	var value,
+		i = 0,
+		length = obj.length,
+		//判断是否是类数组对象
+		isArray = isArraylike( obj );
+	
+	//如果第三参数存在,内部使用
+	if ( args ) {
+		if ( isArray ) {
+			for ( ; i < length; i++ ) {
+				value = callback.apply( obj[ i ], args );
+				if ( value === false ) {
+					break;
+				}
+			}
+		} else {
+			for ( i in obj ) {
+				value = callback.apply( obj[ i ], args );
+
+				if ( value === false ) {
+					break;
+				}
+			}
+		}
+
+	// A special, fast, case for the most common use of each
+	// 外部使用
+	} else {
+	    //数组或类数组对象
+		if ( isArray ) {
+			for ( ; i < length; i++ ) {
+				//call的第一个参数是this指向,后面的参数是callback函数的参数
+				//$.each(arr,function(index,value){})
+				//callback -> functon(index,value){}
+				//并且callback传入了两个参数i obj[i]
+				//i -> index obj[i] -> value
+				//this -> obj[i] 详见(二)
+				value = callback.call( obj[ i ], i, obj[ i ] );
+				//如果有return false 则终止遍历
+				//详见(三)
+				if ( value === false ) {
+					break;
+				}
+			}
+		} else {
+		    //对象
+			for ( i in obj ) {
+				value = callback.call( obj[ i ], i, obj[ i ] );
+
+				if ( value === false ) {
+					break;
+				}
+			}
+		}
+	}
+
+	return obj;
+},
+```
+
+
+>内容解析
+
+(一)、参数解析
+
+```
+var arr = [1,2,3];
+
+$.each(arr,function(index,value) {
+   console.log(index);  //0 1 2
+   console.log(value);  //1 2 3
+});
+```
+
+(二)、`this`指向
+
+
+```
+var arr = [1,2,3];
+
+$.each(arr,function(index,value) {
+   console.log(this.valueOf());  //1 2 3 
+});
+```
+
+
+(三)、终止遍历
+
+```
+var arr = [1,2,3];
+
+$.each(arr,function(index,value) {
+  console.log(index);  //0
+  return false;        //终止遍历
+});
+```
+
+
+### 5.21 $.trim()
+
+>源码
+
+```
+trim: function( text ) {
+	return text == null ? "" : core_trim.call( text );
+},
+```
+
+### 5.22 $.makeArray()
+- 参数一 
+- 参数二 内部使用
+
+>源码
+
+```
+// results is for internal usage only
+makeArray: function( arr, results ) {
+	//第二参数可能不存在,那么就是空数组
+	var ret = results || [];
+
+	//第一参数如果不存在返回空数组
+	if ( arr != null ) {
+		//Object(arr) 
+		//字符串形式 '123' -> ['123']
+		//详见(一)
+		//需要注意数组是走这里
+		if ( isArraylike( Object(arr) ) ) {
+			jQuery.merge( ret,
+				typeof arr === "string" ?
+				[ arr ] : arr
+			);
+		//数字形式,详见(二)	
+		} else {
+			core_push.call( ret, arr );
+		}
+	}
+
+	return ret;
+},
+```
+
+>内容解析
+
+(一) Object
+
+- 转换成包装对象
+
+```
+var str = '123'
+console.log(Object(str));   
+//String {0: "1", 1: "2", 2: "3", length: 3, [[PrimitiveValue]]:
+console.log($.makeArray(str));  //['123']
+```
+
+(二) `[].push()`
+
+```
+var num = 123;
+console.log(Object(num));   //Number(123);
+
+var arr = [];
+
+arr.push(num);      //传入单个num
+arr.push([1,2,3]);  //传入数组
+
+console.log(arr);   //[123,[1,2,3]]
+
+//注意apply和call的用法区别
+[].push.call(arr,4,5,6);
+console.log(arr);  //[123,[1,2,3],4,5,6]
+[].push.apply(arr,[7,8,9]);
+console.log(arr);   //[123,[1,2,3],4,5,6,7,8,9]
+
+
+//走的不是源码的else
+//如果是else
+//变成了[[1,2,3],[4,5,6]]
+console.log($.makeArray([1,2,3],[4,5,6])); //1,2,3,4,5,6
+```
+
+### 5.23 $.inArray()
+
+- 数组版的indexOf()
+
+>源码
+
+```
+inArray: function( elem, arr, i ) {
+	//i是indexOf的第二个参数,搜索的起始位置
+	//详见(一)
+	return arr == null ? -1 : core_indexOf.call( arr, elem, i );
+},
+```
+
+>内容解析
+
+(一) `indexOf()`
+
+```
+//字符串索引
+console.log('12345'.indexOf('3',4)); //-1
+console.log('12345'.indexOf('3',1)); //2
+console.log('12345'.indexOf('3',2)); //2
+console.log('12345'.indexOf('3'));   //2
+
+
+//数组索引
+console.log([].indexOf.call([1,2,3,4,5],3)); //2
+
+//jQuery数组索引
+console.log($.inArray(2,[1,2,3,4,5]));  //1
+```
+
+
+### 5.24 $.merge()
+- 合并数组
+- 对外 转数组
+- 对内 转json
+
+- 针对情况`[] {}`, `{}`可能有`length`也可能没有`length`
+
+```
+merge: function( first, second ) {
+	var l = second.length,
+		i = first.length,
+		j = 0;
+
+	// $.merge(['a','b'],['a','b'])
+	// second不是数组,没有length属性
+	if ( typeof l === "number" ) {
+		for ( ; j < l; j++ ) {
+			first[ i++ ] = second[ j ];
+		}
+	// $.merge(['a','b'],{0:'a',1:'b'})	
+	} else {
+		while ( second[j] !== undefined ) {
+			first[ i++ ] = second[ j++ ];
+		}
+	}
+
+	first.length = i;
+
+	return first;
+},
+```
+
+
+
+
+### 5.25 $.grep()
+
+- 过滤数组,返回新数组
+- 第三个参数 布尔值
+
+
+>源码
+
+```
+grep: function( elems, callback, inv ) {
+	var retVal,
+		ret = [],
+		i = 0,
+		length = elems.length;
+	//!! 转换为布尔值	
+	inv = !!inv;
+
+	// Go through the array, only saving the items
+	// that pass the validator function
+	// 只有数组才会遍历(类数组)
+	for ( ; i < length; i++ ) {
+		retVal = !!callback( elems[ i ], i );
+		if ( inv !== retVal ) {
+			ret.push( elems[ i ] );
+		}
+	}
+
+	return ret;
+},
+```
+
+>内容解析
+
+
+```
+var arr = [1,2,3,4];
+
+var f = function(value,index) {
+    return 1     //1类似于true
+};
+
+var f1 = function(value,index) {
+    return value > 2
+};
+
+console.log($.grep(arr,f));         //[1,2,3,4]
+console.log($.grep(arr,f1));        //[3,4]
+console.log($.grep(arr,f1,true));   //[1,2]
+```
+
+
+
+
+### 5.26 $.map()
+
+- 改变数组`value`,返回新数组
+
+>源码
+```
+// arg is for internal usage only
+map: function( elems, callback, arg ) {
+	var value,
+		i = 0,
+		length = elems.length,
+		//是否是数组和类数组
+		isArray = isArraylike( elems ),
+		ret = [];
+
+	// Go through the array, translating each of the items to their
+	// 数组格式
+	if ( isArray ) {
+		for ( ; i < length; i++ ) {
+			value = callback( elems[ i ], i, arg );
+
+			if ( value != null ) {
+				// 注意是ret.length 会自动递增的
+				ret[ ret.length ] = value;
+			}
+		}
+
+	// Go through every key on the object,
+	// Json格式
+	} else {
+		for ( i in elems ) {
+			value = callback( elems[ i ], i, arg );
+
+			if ( value != null ) {
+				ret[ ret.length ] = value;
+			}
+		}
+	}
+
+	// Flatten any nested arrays
+	// 返回的是单数组,而不是复合数组
+	return core_concat.apply( [], ret );
+},
+```
+
+
+>内容解析
+
+```
+var arr = [1,2,3];
+        
+var newArr = $.map(arr,function(value,index) {
+    return value + 1;
+});
+
+console.log(newArr); //[2,3,4]
+```
+
+
+### 5.27 $.guid
+
+- 取消绑定事件有关系
+- 唯一标识符,用于标识事件函数
+
+
+// A global GUID counter for objects
+guid: 1,  
+
+
+### 5.28 $.proxy()
+
+- 类似于`call`和`apply`,改变`this`指向
+
+> 源码
+
+```
+// Bind a function to a context, optionally partially applying any
+// arguments.
+proxy: function( fn, context ) {
+	var tmp, args, proxy;
+
+	// obj = {fn : function(){}}
+	// $.proxy(obj,'fn') 情况
+	// 详见(一)
+	if ( typeof context === "string" ) {
+		tmp = fn[ context ];
+		context = fn;
+		fn = tmp;
+	}
+
+	// Quick check to determine if target is callable, in the spec
+	// this throws a TypeError, but we will just return undefined.
+	// 如果不是函数
+	if ( !jQuery.isFunction( fn ) ) {
+		return undefined;
+	}
+
+	// Simulated bind
+	// $.proxy()参数可以追加, 去除第一第二参数fn和context
+	// 详见(二)
+	args = core_slice.call( arguments, 2 );
+	// $.proxy(arg1)(arg2) 这个扩展方法返回的是一个可执行的函数
+	// apply改变this指向
+	// 如果没有指定context 使用默认this
+	// apply第二个参数是[],call后面可以跟n个参数
+	// 将arguments类数组对象使用slice.call转化为数组
+	// 将arg1和arg2合并,注意arg1和arg2的归属函数
+	// arguments是arg2
+	// 详见(三)
+	proxy = function() {
+		return fn.apply( context || this, args.concat( core_slice.call( arguments ) ) );
+	};
+
+	// Set the guid of unique handler to the same of original handler, so it can be removed
+	// 设置唯一事件标识符
+	// 如果要取消事件就能找到
+	// 详见(四)
+	proxy.guid = fn.guid = fn.guid || jQuery.guid++;
+
+	// 返回的是函数
+	return proxy;
+},
+```
+
+
+>内容解析
+
+(一) `$.proxy(obj, 'fn')`
+
+```
+var obj = {
+  show: function() {
+      console.log(this);
+  }
+};
+
+$(document).click(obj.show);   //绑定事件函数中的this默认指向绑定对象$(document)
+$(document).click($.proxy(obj,'show'));     //改变了绑定事件函数中的this指向,指向了obj,需要注意的是$.proxy没有执行,点击事件之后才会执行
+```
+
+(二) 转数组
+
+```
+  var json = {
+      0: 0,
+      1: 1,
+      2: 2,
+      length:3
+  }
+
+  //slice默认不传参数就是起始开始,末尾结束
+  console.log(Array.isArray([].slice.call(json))) //true
+  console.log([].slice.call(json));               //[0,1,2]
+```
+	
+(三) `$.proxy()`参数详见
+
+
+```
+var obj = {
+	show: function(a,b) {
+	      console.log(a);
+	      console.log(b);
+	      console.log(this);
+	  }
+};
+
+
+$.proxy(obj.show,obj,1,2)(); //1,2,obj
+$.proxy(obj.show,obj,1)(2);
+$.proxy(obj.show,obj)(1,2);  //全都是一样的
+```
+
+
+(四) 事件绑定
+
+
+```
+function show() {
+  console.log(this);
+}
+
+show();                 //Window
+
+$(document).click(
+    show                //绑定事件,Document
+);
+
+$(document).off()       //取消绑定
+```
+
+需要注意的是一般情况下, 想要取消绑定事件,需要调用同一个绑定事件的引用,例如以下取消绑定事件是会失败的,所以就有了唯一标识符`guid`,因为使用`$.proxy()`很容易改变绑定的事件函数,不使用唯一标识符的话,就不能取消绑定了
+
+```
+//绑定事件
+document.addEventListener('click',function(){
+    alert(1);
+});
+
+//取消绑定,并不能取消,因为事件函数并不是同一个引用对象
+document.removeEventListener('click',function(){
+   alert(1);
+});
+
+
+//正确的形式
+
+//绑定事件
+document.addEventListener('click',show);
+
+
+//取消绑定,因为事件函数指向了同一个事件函数的引用
+document.removeEventListener('click',show);
+
+function show() {
+    alert(1);
+}
+
+
+```
+
+
+
+### 5.29 $.access()
+
+- 多功能函数的操作 底层工具方法
+- 内部使用
+
+>源码
+
+```
+// Multifunctional method to get and set values of a collection
+// The value/s can optionally be executed if it's a function
+// key -> witdh
+// value -> 200px
+// chainable -> 获取还是设置
+access: function( elems, fn, key, value, chainable, emptyGet, raw ) {
+	var i = 0,
+		length = elems.length,
+		// 有值或者没值
+		bulk = key == null;
+
+	// Sets many values
+	// 设置多组值
+	// $('#div1').css({width:'200px',background:'yellow'})
+	// key是Object
+	if ( jQuery.type( key ) === "object" ) {
+		chainable = true;
+		for ( i in key ) {
+			//递归调用 
+			jQuery.access( elems, fn, i, key[i], true, emptyGet, raw );
+		}
+
+	// Sets one value
+	// 如果是一组值
+	// $('#div1').css('width','200px')
+	} else if ( value !== undefined ) {
+		chainable = true;
+		
+		// value是否是函数
+		if ( !jQuery.isFunction( value ) ) {
+			raw = true;
+		}
+
+		// 如果没有Key值
+		if ( bulk ) {
+			// Bulk operations run against the entire set
+			// 如果value是字符串
+			if ( raw ) {
+				fn.call( elems, value );
+				fn = null;
+
+			// ...except when executing function values
+			} else {
+				// 如果是函数,则套上一个fn,并不是立即执行的
+				bulk = fn;
+				fn = function( elem, key, value ) {
+					return bulk.call( jQuery( elem ), value );
+				};
+			}
+		}
+
+
+		// 存在key值得情况下
+		if ( fn ) {
+			for ( ; i < length; i++ ) {
+				fn( elems[i], key, raw ? value : value.call( elems[i], i, fn( elems[i], key ) ) );
+			}
+		}
+	}
+	
+	// 判断是设置还是获取
+	return chainable ?
+		elems :
+
+		// Gets
+		// 获取
+		bulk ?
+			fn.call( elems ) :
+			length ? fn( elems[0], key ) : emptyGet;
+},
+```
+
+
+>内容解析
+
+```
+ //$().css() \ $().val() \ $().attr()等方法都调用了$.access()工具方法
+ //$.access() 多功能值操作(内部)
+
+ //获取样式 一个参数
+ console.log($('#div1').css('width'));   //100px
+
+ //设置样式 两个参数
+ $('#div1').css('width','200px')
+
+ //设置样式 一个对象参数
+ $('#div1').css({width:'200px',background:'yellow'})
+```
+
+
+
+### 5.30 $.now()
+
+- 获取时间
+
+
+```
+//和(new Date()).getTime()功能类似
+//ECMAScript 5方法
+now: Date.now,  
+```
+
+### 5.31 $.swap()
+
+- css属性交换
+
+```
+// A method for quickly swapping in/out CSS properties to get correct calculations.
+// Note: this method belongs to the css module but it's needed here for the support module.
+// If support gets modularized, this method should be moved back to the css module.
+swap: function( elem, options, callback, args ) {
+	var ret, name,
+		old = {};
+
+	// Remember the old values, and insert the new ones
+	// options当然是要设置的属性
+	for ( name in options ) {
+		// 把旧的属性先保存下来
+		old[ name ] = elem.style[ name ];
+		// 设置属性
+		elem.style[ name ] = options[ name ];
+	}
+
+	// 这里是获取元素的某些参数
+	ret = callback.apply( elem, args || [] );
+
+	// Revert the old values
+	// 还原css属性
+	for ( name in options ) {
+		elem.style[ name ] = old[ name ];
+	}
+
+	return ret;
+}
+```
+
+
+>内容解析
+
+- 交换样式有时候就如例子这么有用
+
+```
+var $div = $('#div1')
+   , divDom = $div.get(0);
+
+console.log(divDom.offsetWidth); //100
+
+var oldStyle = divDom.style.cssText;  //保留老的样式
+
+divDom.style.display = 'none';
+console.log(divDom.offsetWidth); //0 当display: none时不能获取
+
+
+//让内容脱离正常流,绝对定位,不可见,此时看起来页面的样式没有变
+divDom.style.display = 'block';
+divDom.style.visibility = 'hidden';
+divDom.style.position = 'absolute';
+console.log(divDom.offsetWidth); //100 此时可以获取宽度了
+
+//重新改回原来的样式
+divDom.style.cssText = oldStyle;	
 ```

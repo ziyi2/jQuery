@@ -706,7 +706,7 @@ jQuery.extend({
 	},
 
 	// A global GUID counter for objects
-	guid: 1,
+	guid: 1,  
 
 	// Bind a function to a context, optionally partially applying any
 	// arguments.
