@@ -1,4 +1,4 @@
-
+﻿
 ## 0.了解jQuery的这些属性和方法么？
 
 >注意:  本版本jQuery只支持IE9以上的浏览器
@@ -3202,4 +3202,52 @@ console.log(divDom.offsetWidth); //100 此时可以获取宽度了
 
 //重新改回原来的样式
 divDom.style.cssText = oldStyle;	
+```
+
+
+## 5-6.私有方法`isArraylike`
+
+需要注意这是一个私有方法,不具备成立单独的一大节,所以此节命名为`5-6`,在整个自执行匿名函数中都可以调用,对外不可见.
+
+>源码
+
+```
+(function(window,undefined) {
+
+    //[849]
+    function isArraylike( obj ) {
+        var length = obj.length,
+                type = jQuery.type( obj );
+
+        //如果是Window对象
+        if ( jQuery.isWindow( obj ) ) {
+            return false;
+        }
+
+        //如果是Node节点集合,类数组形式
+        if ( obj.nodeType === 1 && length ) {
+            return true;
+        }
+
+        //需要注意第一个||
+        //obj不是函数且length=0 也算Array
+        //obj不是函数length!=0且length是num且length>0且length-1是obj的key
+        //需要注意如果去掉length = 0 的情况那么后面的就不好判断了,因为length-1 可能是-1了
+        return type === "array" || type !== "function" &&
+                ( length === 0 ||
+                typeof length === "number" && length > 0 && ( length - 1 ) in obj );
+    }
+
+})(window);
+```
+
+内容解析:
+
+```
+isArraylike([]);
+isArraylike({length:0});        //true
+isArraylike({a:1,length:1});    //false, 0 in obj不存在
+isArraylike({1:'a',length:1});  //false, 1 in obj也不存在
+isArraylike({0:'a',length:1})   //true
+//DOM节点也是可以的
 ```
