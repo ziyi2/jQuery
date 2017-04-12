@@ -75,7 +75,7 @@
    [21~91]     : $自执行匿名函数的私有属性
    [96~283]    : $jQuery对象的属性和方法
    [285~347]   : $拷贝继承
-   [349~817]   : $工具方法(静态方法)
+   [349~817]   : $工具方法
    [877~2856]  : $复杂选择器Sizzle
    [2880~3042] : $回调对象
    [3043~3183] : $延迟对象
@@ -3250,4 +3250,161 @@ isArraylike({a:1,length:1});    //false, 0 in obj不存在
 isArraylike({1:'a',length:1});  //false, 1 in obj也不存在
 isArraylike({0:'a',length:1})   //true
 //DOM节点也是可以的
+```
+
+
+## 6. 选择器Sizzle
+
+
+## 7. 回调对象
+
+>源码
+
+```
+//[2859]
+/*
+ * Create a callback list using the following parameters:
+ *
+ *	options: an optional list of space-separated options that will change how
+ *			the callback list behaves or a more traditional option object
+ *
+ * By default a callback list will act like an event callback list and can be
+ * "fired" multiple times.
+ *
+ * Possible options:
+ *
+ *	once:			will ensure the callback list can only be fired once (like a Deferred)
+ *
+ *	memory:			will keep track of previous values and will call any callback added
+ *					after the list has been fired right away with the latest "memorized"
+ *					values (like a Deferred)
+ *
+ *	unique:			will ensure a callback can only be added once (no duplicate in the list)
+ *
+ *	stopOnFalse:	interrupt callings when a callback returns false
+ *
+ */
+jQuery.Callbacks = function( options ) {
+	// Convert options from String-formatted to Object-formatted if needed
+	// (we check in cache first)
+	options = typeof options === "string" ?
+		( optionsCache[ options ] || createOptions( options ) ) :
+		jQuery.extend( {}, options );
+
+	var // Last fire value (for non-forgettable lists)
+		memory,
+		// Flag to know if list was already fired
+		fired,
+		// Flag to know if list is currently firing
+		firing,
+		// First callback to fire (used internally by add and fireWith)
+		firingStart,
+		// End of the loop when firing
+		firingLength,
+		// Index of currently firing callback (modified by remove if needed)
+		firingIndex,
+		// Actual callback list
+		list = [],
+		// Stack of fire calls for repeatable lists
+		stack = !options.once && [],
+
+	fire = function(data) {}
+	// Actual Callbacks object
+	self = {
+		add:          //添加监听的回调函数
+		remove:       //移除监听的回调函数
+		has:
+		empty:
+		disable:
+		disabled:
+		lock:
+		locked:
+		fireWith:
+		fire:        //执行监听的回调函数
+		fired: 
+	}
+	
+	return self;
+}
+```
+
+>内容解析
+
+按顺序触发想要执行的函数
+```
+function fn1() {
+    console.log('111');
+}
+
+function fn2() {
+    console.log('222');
+}
+
+
+var callbacks = $.Callbacks();
+
+callbacks.add(fn1);
+callbacks.add(fn2);
+
+callbacks.fire(); //111 222 
+```
+
+
+即使不在同一个作用域,也可以按顺序触发想要执行的函数
+
+```
+var callbacks = $.Callbacks();
+
+function fn1() {
+    console.log('111');
+}
+
+function fn2() {
+    console.log('222');
+}
+
+callbacks.add(fn1);
+callbacks.add(fn2);
+
+(function() {
+    function fn3() {
+        console.log('333');
+    }
+
+    callbacks.add(fn3);
+
+})();
+
+callbacks.fire(); //111 222 333 这样在外部也可以执行fn3
+
+fn3();            //fn3 is not defined(…) 默认外部不能执行
+```
+
+也可以根据条件移除不需要执行的回调函数
+```
+var callbacks = $.Callbacks();
+
+ function fn1() {
+     console.log('111');
+ }
+
+ function fn2() {
+     console.log('222');
+ }
+
+ callbacks.add(fn1);
+ callbacks.add(fn2);
+
+ callbacks.remove(fn2);
+
+ (function() {
+     function fn3() {
+         console.log('333');
+     }
+
+     callbacks.add(fn3);
+
+ })();
+
+ callbacks.fire(); //111 333
 ```
