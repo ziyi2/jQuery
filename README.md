@@ -19,7 +19,7 @@
  $().first()                          # 集合的第一项(相当于在栈上又堆了一层,仍然是jQuery实例对象)
  $().last()                           # 集合的最后一项(相当于在栈上又堆了一层,仍然是jQuery实例对象)
  $().eq()                             # 获取特定的DOM集合(使用了堆栈方法,返回的仍然是$而不是特定的DOM元素对象)
- $().end():                           # 栈回溯，可以看做popStack()，
+ $().end():                           # 栈回溯,可以看做popStack(),
  $().map()                            # 遍历集合并返回新集合(使用了堆栈方法)
  $().push()                           # 内部增加性能使用(不建议对外)
  $().sort()                           # 内部增加性能使用(不建议对外)
@@ -71,7 +71,7 @@
 ## 1. 总体架构
 
 ``` javascript
-(function(window， undefined) {
+(function(window, undefined) {
    [21~91]     : $自执行匿名函数的私有属性
    [96~283]    : $jQuery对象的属性和方法
    [285~347]   : $拷贝继承
@@ -102,7 +102,7 @@
 
 >内容解析
 
-(一)、自执行匿名函数创建了特殊的函数作用域，该作用域的代码不会和匿名函数外部的同名函数冲突
+(一)、自执行匿名函数创建了特殊的函数作用域,该作用域的代码不会和匿名函数外部的同名函数冲突
 ``` javascript
 (function(){
 	//局部函数
@@ -121,23 +121,23 @@ a();    //out a
 (二)、缩短作用域链
 
 ``` javascript
-//访问局部变量window，不需要向上遍历作用域链，缩短查找时间，同时在压缩代码时局部变量window可被压缩
+//访问局部变量window,不需要向上遍历作用域链,缩短查找时间,同时在压缩代码时局部变量window可被压缩
 (function(window){
     window.a = 1;
     alert(a);
 })(window);
 
-//向上遍历到顶层作用域，访问速度变慢，全局变量window不能被压缩
+//向上遍历到顶层作用域,访问速度变慢,全局变量window不能被压缩
 (function(){
     window.a = 1;
     alert(a);
 })();
 ```
 
-(三)、`undefined`保证不被修改，可以被压缩，也可以缩短查找`undefined`的作用域链
+(三)、`undefined`保证不被修改,可以被压缩,也可以缩短查找`undefined`的作用域链
 ``` javascript
- //自执行内部的undefined变量不会被外部的情况修改，低版本IE浏览器可以修改undefined的值
-(function(window，undefined){
+ //自执行内部的undefined变量不会被外部的情况修改,低版本IE浏览器可以修改undefined的值
+(function(window,undefined){
     alert(undefined); //undefined
 })(window);
 ```
@@ -147,7 +147,7 @@ a();    //out a
 ### 2.1 rootjQuery
 
 - 压缩
-- 查找局部变量`rootjQuery`而不是执行`jQuery(document)`，提高代码性能
+- 查找局部变量`rootjQuery`而不是执行`jQuery(document)`,提高代码性能
 
 >源码
 
@@ -155,14 +155,14 @@ a();    //out a
 //[21~23]
 var
 	// A central reference to the root jQuery(document)
-	rootjQuery，
+	rootjQuery,
 
 //[865~866]
 // All jQuery objects should point back to these
 rootjQuery = jQuery(document);
 ```
 
->提示:  `rootjQuery`可以压缩，`jQuery(document)`不能被压缩.
+>提示:  `rootjQuery`可以压缩,`jQuery(document)`不能被压缩.
 
 ### 2.2 readyList
 
@@ -182,12 +182,12 @@ rootjQuery = jQuery(document);
 //[28~30]
 // Support: IE9
 // For `typeof xmlNode.method` instead of `xmlNode.method !== undefined`
-core_strundefined = typeof undefined， //'undefined'字符串
+core_strundefined = typeof undefined, //'undefined'字符串
 ```
 
 >内容解析
 ``` javascript
-window.a == undefined 				//并不是所有情况都兼容，xml节点不能判断 xmlNode
+window.a == undefined 				//并不是所有情况都兼容,xml节点不能判断 xmlNode
 typeof window.a == 'undefined'		//所有情况兼容
 ```
 
@@ -200,9 +200,9 @@ typeof window.a == 'undefined'		//所有情况兼容
 ``` javascript
 //[32~35]
 // Use the correct document accordingly with window argument (sandbox)
-location = window.location，
-document = window.document，
-docElem = document.documentElement，
+location = window.location,
+document = window.document,
+docElem = document.documentElement,
 ```
 
 ### 2.5 _变量
@@ -213,10 +213,10 @@ docElem = document.documentElement，
 ``` javascript
 [37~41]
 // Map over jQuery in case of overwrite
-_jQuery = window.jQuery，
+_jQuery = window.jQuery,
 
 // Map over the $ in case of overwrite
-_$ = window.$，
+_$ = window.$,
 ```
 
 >内容解析
@@ -227,7 +227,7 @@ _$ = window.$，
 </script>
 
 <script src='Jquery2.0.3.js'></script>
-//执行了_$ = window.$， 将用户或第三方的$变量内容存储下来，防止引用jQuery之前的变量冲突
+//执行了_$ = window.$, 将用户或第三方的$变量内容存储下来,防止引用jQuery之前的变量冲突
 <script>
 
 </script>
@@ -242,7 +242,7 @@ _$ = window.$，
 ``` javascript
 //[43~44]
 // [[Class]] -> type pairs
-class2type = {}，
+class2type = {},
 ```
 
 详见`5.7 $.type()`
@@ -253,8 +253,8 @@ class2type = {}，
 >源码
 ``` javascript
 //[46~47]
-// List of deleted data cache ids， so we can reuse them
-core_deletedIds = []，
+// List of deleted data cache ids, so we can reuse them
+core_deletedIds = [],
 ```
 
 ### 2.8 core_version
@@ -264,7 +264,7 @@ core_deletedIds = []，
 >源码
 ``` javascript
 //[49]
-core_version = "2.0.3"，
+core_version = "2.0.3",
 ```
 ### 2.9 数组、对象、字符串方法
 - 压缩
@@ -275,13 +275,13 @@ core_version = "2.0.3"，
 ```javascript
 //[51~58]
 // Save a reference to some core methods
-core_concat = core_deletedIds.concat，
-core_push = core_deletedIds.push，
-core_slice = core_deletedIds.slice，
-core_indexOf = core_deletedIds.indexOf，
-core_toString = class2type.toString，
-core_hasOwn = class2type.hasOwnProperty，
-core_trim = core_version.trim，	//去除字符串的空格
+core_concat = core_deletedIds.concat,
+core_push = core_deletedIds.push,
+core_slice = core_deletedIds.slice,
+core_indexOf = core_deletedIds.indexOf,
+core_toString = class2type.toString,
+core_hasOwn = class2type.hasOwnProperty,
+core_trim = core_version.trim,	//去除字符串的空格
 ```
 
 ### 2.10 jQuery(重点)
@@ -294,16 +294,16 @@ core_trim = core_version.trim，	//去除字符串的空格
 ``` javascript
 //[60]
 // Define a local copy of jQuery
-jQuery = function( selector， context ) {
+jQuery = function( selector, context ) {
     // The jQuery object is actually just the init constructor 'enhanced'
-    return new jQuery.fn.init( selector， context， rootjQuery );
-}，
+    return new jQuery.fn.init( selector, context, rootjQuery );
+},
 //[96]
 jQuery.fn = jQuery.prototype = {
     // The current version of jQuery being used
-    jquery: core_version，
-    constructor: jQuery，
-    init: function( selector， context， rootjQuery ) {}
+    jquery: core_version,
+    constructor: jQuery,
+    init: function( selector, context, rootjQuery ) {}
     ...
 }
 //[282]
@@ -323,7 +323,7 @@ Obj.prototype.extend = function(){
 };
 var o = Obj();
 o.init();		//首先需要初始化
-o.css();		//然后才去做其他方法的工作，那么jQuery是这么做的？
+o.css();		//然后才去做其他方法的工作,那么jQuery是这么做的？
 ```
 
 (二)、`jQuery`的面向对象的编程方法
@@ -332,7 +332,7 @@ o.css();		//然后才去做其他方法的工作，那么jQuery是这么做的�
 function jQuery() {
     return new jQuery.prototype.init();         //jQuery.prototype = jQuery.fn
     //类似于return new jQuery();
-    //同时return new A()的形式让我们在创建实例时可以省略new，例如$('div')，而不是new $('div')
+    //同时return new A()的形式让我们在创建实例时可以省略new,例如$('div'),而不是new $('div')
 }
 jQuery.prototype.init = function() {
     alert('init');
@@ -352,22 +352,22 @@ jQuery().css(); //init css
 ``` javascript
 //[66]
 // Used for matching numbers
-core_pnum = /[+-]?(?:\d*\.|)\d+(?:[eE][+-]?\d+|)/.source，
+core_pnum = /[+-]?(?:\d*\.|)\d+(?:[eE][+-]?\d+|)/.source,
 
 // Used for splitting on whitespace
-core_rnotwhite = /\S+/g，
+core_rnotwhite = /\S+/g,
 
 // A simple way to check for HTML strings
 // Prioritize #id over <tag> to avoid XSS via location.hash (#9521)
 // Strict HTML recognition (#11290: must start with <)
-rquickExpr = /^(?:\s*(<[\w\W]+>)[^>]*|#([\w-]*))$/，
+rquickExpr = /^(?:\s*(<[\w\W]+>)[^>]*|#([\w-]*))$/,
 
 // Match a standalone tag
-rsingleTag = /^<(\w+)\s*\/?>(?:<\/\1>|)$/，
+rsingleTag = /^<(\w+)\s*\/?>(?:<\/\1>|)$/,
 
 // Matches dashed string for camelizing
-rmsPrefix = /^-ms-/，
-rdashAlpha = /-([\da-z])/gi，
+rmsPrefix = /^-ms-/,
+rdashAlpha = /-([\da-z])/gi,
 ```
 
 ### 2.12  fcamelCase
@@ -380,28 +380,28 @@ rdashAlpha = /-([\da-z])/gi，
 
 ## 3. jQuery对象的属性和方法
 
-为`jQuery`的原型添加方法和属性，这些方法和属性可以被`jQuery`的实例对象所使用.原型对象的属性会被实例对象继承，当然如果实例对象已经具备相应的属性，则会把原型对象的同名属性覆盖掉.
+为`jQuery`的原型添加方法和属性,这些方法和属性可以被`jQuery`的实例对象所使用.原型对象的属性会被实例对象继承,当然如果实例对象已经具备相应的属性,则会把原型对象的同名属性覆盖掉.
 
 ``` javascript
 jQuery.fn = jQuery.prototype = {
-    jquery:      版本号，
-    constructor: 修正指向问题，
-    init():      初始化和参数管理(构造函数)，
-    selector:    实例化对象时的初始化选择器，
-    length:      默认的Jquery对象的长度是0，
-    toArray():   转数组(也可以是对外的实例方法)，
-    get():       转原生集合，其实也是转成数组形式(对外方法)，
-    pushStack(): jQuery对象的一个入栈处理(外部用的不多，内部用的对)，
-    each():      遍历集合，
-    ready():     DOM加载的接口，
-    slice():     集合的截取，
-    eq():        集合的第一项，
-    last():      集合的最后一项，
-    eq():        集合的指定项，
-    map():       返回新集合，
-    end():       栈回溯，可以看做popStack()，
-    push():      (内部使用)，
-    sort():      (内部使用)，
+    jquery:      版本号,
+    constructor: 修正指向问题,
+    init():      初始化和参数管理(构造函数),
+    selector:    实例化对象时的初始化选择器,
+    length:      默认的Jquery对象的长度是0,
+    toArray():   转数组(也可以是对外的实例方法),
+    get():       转原生集合,其实也是转成数组形式(对外方法),
+    pushStack(): jQuery对象的一个入栈处理(外部用的不多,内部用的对),
+    each():      遍历集合,
+    ready():     DOM加载的接口,
+    slice():     集合的截取,
+    eq():        集合的第一项,
+    last():      集合的最后一项,
+    eq():        集合的指定项,
+    map():       返回新集合,
+    end():       栈回溯,可以看做popStack(),
+    push():      (内部使用),
+    sort():      (内部使用),
     splice():    (内部使用)
 }
 ```
@@ -414,13 +414,13 @@ console.log($().jquery);    //2.0.3
 
 ### 3.2 $().constructor
 
-默认的构造函数的原型的`constructor`属性指向该构造函数，但是`constructor`属性很容易被修改.所以可以在原型对象的`constructor`属性中进行修正.
+默认的构造函数的原型的`constructor`属性指向该构造函数,但是`constructor`属性很容易被修改.所以可以在原型对象的`constructor`属性中进行修正.
 
 >源码
 
 ```javascript
 //[100]
-constructor: jQuery，
+constructor: jQuery,
 ```
 
 
@@ -436,10 +436,10 @@ Obj.prototype.init = function(){
 Obj.prototype.css = function(){
 };
 
-//使用对象字面量的方法，利用新的对象将Obj.prototype进行了覆盖
+//使用对象字面量的方法,利用新的对象将Obj.prototype进行了覆盖
 Obj.prototype = {
     init: function(){
-	}，
+	},
 	css: function(){
 	}
 };
@@ -448,7 +448,7 @@ alert(Obj.prototype.constructor);	//function Object{[native code]}
 
 ### 3.3 $().init() (jQuery构造函数方法)
 
-对外提供的实例对象的接口是`$()`或者`jQuery()`，当调用`$()`的时候其实是调用了`init()或者说jQuery()`，然后返回的是`jQuery的实例对象`，这样就可以使用`jQuery对象`的`prototype`的方法和属性(因为继承关系)，`init()`方法的功能是`初始化jQuery的实例对象`.
+对外提供的实例对象的接口是`$()`或者`jQuery()`,当调用`$()`的时候其实是调用了`init()或者说jQuery()`,然后返回的是`jQuery的实例对象`,这样就可以使用`jQuery对象`的`prototype`的方法和属性(因为继承关系),`init()`方法的功能是`初始化jQuery的实例对象`.
 
 
 >源码
@@ -615,7 +615,7 @@ init: function( selector, context, rootjQuery ) {
 			//以上两种判断$(expr, $(...))、$(expr, context)最终变成$(document).find()调用Sizzle选择器
 
 		// HANDLE: $(DOMElement)
-		//如果不是字符串，是节点
+		//如果不是字符串,是节点
 		} else if ( selector.nodeType ) {
 		    //这里仍然要将this转换成类数组对象
 			//console.log($(document));
@@ -632,7 +632,7 @@ init: function( selector, context, rootjQuery ) {
 
 		// HANDLE: $(function)
 		// Shortcut for document ready
-		//例如$(function(){}),实际仍然调用，$(document).ready(function(){})
+		//例如$(function(){}),实际仍然调用,$(document).ready(function(){})
 		} else if ( jQuery.isFunction( selector ) ) {
 		    //$(document).ready(function(){})
 			return rootjQuery.ready( selector );
@@ -675,7 +675,7 @@ function Obj1() {
 var o1 = new Obj1();
 alert(o1.a);	//1
 
-//返回引用类型的值，则返回有效
+//返回引用类型的值,则返回有效
 function Obj2() {
     this.a = 1;
     this.b = 2;
@@ -687,7 +687,7 @@ function Obj2() {
 var o2 = new Obj2();
 alert(o2.a);	//3
 
-//返回非引用类型，返回值无效
+//返回非引用类型,返回值无效
  function Obj3() {
 	 this.a = 1;
      this.b = 2;
@@ -720,7 +720,7 @@ var aa = (new a()).func2().func3();
 
 (二)、构造函数返回值`this`(可以理解为返回引用值类型有效么？)
 
-`this`作为类数组对象可以进行`for`循环处理，需要注意`$()`是`jQuery`对象，而`$()[0]`是DOM元素。
+`this`作为类数组对象可以进行`for`循环处理,需要注意`$()`是`jQuery`对象,而`$()[0]`是DOM元素。
 
 
 | jQuery中构造函数的this属性(注意不是jQuery原型对象的属性) | 描述|
@@ -731,7 +731,7 @@ var aa = (new a()).func2().func3();
 | `selector`| 选择器 |
 
 
-(三)、`context`具体使用案例（重点，加速查找DOM元素）
+(三)、`context`具体使用案例（重点,加速查找DOM元素）
 
 ``` javascript
 $('h1').click(function() {
@@ -832,7 +832,7 @@ J[2].style.color = 'blue';             //那么明显J[2]是DOM元素对象操�
 
 
 /*
-然后可以想象在css()方法中遍历这个类数组去更改样式. 那么J和css()中怎么将这个类数组对象联系在一起,应为在两个函数中的变量都是局部变量哎,其实也很简单,因为两个方法都是实例对象的原型方法,那么在同一个实例对象上调用这两个方法的this是同一个啊,所以肯定是通过this对象啦，那么在css()方法中,会是这样处理
+然后可以想象在css()方法中遍历这个类数组去更改样式. 那么J和css()中怎么将这个类数组对象联系在一起,应为在两个函数中的变量都是局部变量哎,其实也很简单,因为两个方法都是实例对象的原型方法,那么在同一个实例对象上调用这两个方法的this是同一个啊,所以肯定是通过this对象啦,那么在css()方法中,会是这样处理
 
 for(var i=0 len=this.length; i<len; i++) {
     this[i].style.color = 'red';  //类对象的数组元素是真正的DOM元素操作
@@ -843,8 +843,8 @@ for(var i=0 len=this.length; i<len; i++) {
 
 (六)、`$.makeArray`
 
-- 一个参数可以提供给外部使用，转化为数组
-- 两个参数提供给内部使用，转化为`this`需要的类数组对象
+- 一个参数可以提供给外部使用,转化为数组
+- 两个参数提供给内部使用,转化为`this`需要的类数组对象
 
 ``` javascript
 $('<div>', {html: 'this is a div', class:'div'}).appendTo('body');  //添加在body的末尾
@@ -877,7 +877,7 @@ toArray: function() {
 
 >内容解析
 
-`call /apply` 可以显示指定调用所需的`this`值，任何函数可以作为任何对象的方法来调用，哪怕这个函数不是那个对象的方法，第一个参数是要调用函数的母对象，即调用上下文，在函数体内通过`this`来获得对它的引用
+`call /apply` 可以显示指定调用所需的`this`值,任何函数可以作为任何对象的方法来调用,哪怕这个函数不是那个对象的方法,第一个参数是要调用函数的母对象,即调用上下文,在函数体内通过`this`来获得对它的引用
 
 ``` javascript
 function f() {
@@ -885,7 +885,7 @@ function f() {
 }
 
 f();				//undefined
-f.call({x:100});	//100，函数中的this指代传入的对象，call可以使函数中的this值指向传入的第一个参数
+f.call({x:100});	//100,函数中的this指代传入的对象,call可以使函数中的this值指向传入的第一个参数
 
 //call和apply的区别
 function f(x,y) {
@@ -893,7 +893,7 @@ function f(x,y) {
 }
 
 f.call({x:1},2,3);	  //6,传入一个个参数
-f.apply({x:1},[3,4]); //8，传入一个数组
+f.apply({x:1},[3,4]); //8,传入一个数组
 ```
 
 
@@ -910,7 +910,7 @@ console.log(Array.prototype.slice.call(obj));	//Array[2]
 Array.prototype.slice = function(start,end){
     var result = new Array();
      start = start || 0;
-     end = end || this.length; //this指向调用的对象，当用了call后，能够改变this的指向
+     end = end || this.length; //this指向调用的对象,当用了call后,能够改变this的指向
      for(var i = start; i < end; i++){
           result.push(this[i]);
      }
@@ -932,7 +932,7 @@ var $div = $('div');	//由于构造函数返回的是this, this是一个类数�
 }
 */
 
-$div.toArray();		//把$div的this对象传入了toArray的core_slice.call( this );后面懂了，就把this变成了数组
+$div.toArray();		//把$div的this对象传入了toArray的core_slice.call( this );后面懂了,就把this变成了数组
 ```
 
 附上`[].slice`源码分析
@@ -1214,7 +1214,7 @@ console.log(arr);   //[a0,b1,c2]
 
 ### 3.15 $().push()/sort()/slice()
 
-- 内部用，不建议在外面使用，内部使用增加性能
+- 内部用,不建议在外面使用,内部使用增加性能
 
 >源码
 
@@ -1258,7 +1258,7 @@ jQuery.extend = jQuery.fn.extend = function() {
 	}
 
 	// extend jQuery itself if only one argument is passed
-	//如果参数只有1个，则是扩展jQuery自身的方法，详见(一)
+	//如果参数只有1个,则是扩展jQuery自身的方法,详见(一)
 	if ( length === i ) {
 		target = this;
 		--i;
@@ -1281,14 +1281,14 @@ jQuery.extend = jQuery.fn.extend = function() {
 				}
 
 				// Recurse if we're merging plain objects or arrays
-				//深拷贝，被拷贝的值必须是对象或数组，利用递归，详见(三)
+				//深拷贝,被拷贝的值必须是对象或数组,利用递归,详见(三)
 				if ( deep && copy && ( jQuery.isPlainObject(copy) || (copyIsArray = jQuery.isArray(copy)) ) ) {
 					if ( copyIsArray ) {
 						copyIsArray = false;
-						//如果目标自带的值有，则选择目标自带的值
+						//如果目标自带的值有,则选择目标自带的值
 						clone = src && jQuery.isArray(src) ? src : [];
 					} else {
-					    //如果目标自带的值有，则选择目标自带的值,详见(三)
+					    //如果目标自带的值有,则选择目标自带的值,详见(三)
 						clone = src && jQuery.isPlainObject(src) ? src : {};
 					}
 
@@ -1326,7 +1326,7 @@ jQuery.fn = jQuery.prototype;
 jQuery.extend = jQuery.fn.extend; //jQuery.prototype.extend;
 
 //jQuery.extend 是静态方法
-//jQuery.prototype.extend 实例方法，原型对象的方法会被实例化对象继承
+//jQuery.prototype.extend 实例方法,原型对象的方法会被实例化对象继承
 
 
 $.extend({
@@ -1386,7 +1386,7 @@ console.log(obj); //{f1,f2,name};
 ``` javascript
 var a = {name:'ziy2',age:23};
 var b = a;				//浅拷贝
-console.log(a===b);		//true b是a的副本，引用了同一个内存块
+console.log(a===b);		//true b是a的副本,引用了同一个内存块
 b.name = 'ziyi3';
 console.log(a.name);	//ziyi3
 
@@ -1403,7 +1403,7 @@ console.log(d.age.age);	//25 说明age属性仍然是浅拷贝
 console.log(d.name);	//ziyi5
 
 
-//以下可能是一个深拷贝的函数，其实简单理解就是深拷贝就是两个不同的内存块，浅拷贝就是两个都有引用同一内存块
+//以下可能是一个深拷贝的函数,其实简单理解就是深拷贝就是两个不同的内存块,浅拷贝就是两个都有引用同一内存块
 var deepCopy= function(source) {
 var result={};
 for (var key in source) {
@@ -1473,7 +1473,7 @@ console.log(d);		//{name: {familyName: 'zhang',age:23}} 保留d所有的属性fa
 
 ## 5. 工具方法
 
-利用`4. $.extend()`**拷贝继承**构建工具方法，工具方法是`jQuery`的最底层方法，通常实例方法中会调用工具方法
+利用`4. $.extend()`**拷贝继承**构建工具方法,工具方法是`jQuery`的最底层方法,通常实例方法中会调用工具方法
 
 ``` javascript
 jQuery.extend({
@@ -1539,12 +1539,12 @@ console.log($.expando);	//jQuery20305959261594460556
 ``` javascript
 
 [37~41]
-//在引用jQuery库之前有使用$命令的变量，则保存引用之前的变量
+//在引用jQuery库之前有使用$命令的变量,则保存引用之前的变量
 // Map over jQuery in case of overwrite
-_jQuery = window.jQuery，
+_jQuery = window.jQuery,
 
 // Map over the $ in case of overwrite
-_$ = window.$，
+_$ = window.$,
 
 
 //[353]
@@ -1556,7 +1556,7 @@ noConflict: function( deep ) {
 	if ( window.$ === jQuery ) {
 		window.$ = _$;
 	}
-    //加入参数true以后和(二)一样，放弃掉jQuery变量的命名
+    //加入参数true以后和(二)一样,放弃掉jQuery变量的命名
     if ( deep && window.jQuery === jQuery ) {
 		window.jQuery = _jQuery;
 	}
@@ -1597,7 +1597,7 @@ new$(function(){
 <script src='Jquery2.0.3.js'></script>
 
 <script>
-	$.noConflict();	//获取加载jQuery库之前的$变量值，并放弃$变量对于jQuery的意义
+	$.noConflict();	//获取加载jQuery库之前的$变量值,并放弃$变量对于jQuery的意义
 	console.log($);	//2017
 </script>
 
@@ -1612,7 +1612,7 @@ new$(function(){
 
 <script>
        $.noConflict(true);	 //放弃掉jQuery
-	console.log(jQuery); //2017，仍然是引用jQuery库之前的jQuery变量
+	console.log(jQuery); //2017,仍然是引用jQuery库之前的jQuery变量
 </script>
 
 ```
@@ -1650,7 +1650,7 @@ ready: function( fn ) {
 
 // 步骤三、[819]
 jQuery.ready.promise = function( obj ) {
-    //第一次是空对象，可以进入if
+    //第一次是空对象,可以进入if
 	if ( !readyList ) {
 		//创建延迟对象
 		readyList = jQuery.Deferred();
@@ -1664,17 +1664,17 @@ jQuery.ready.promise = function( obj ) {
 		//详见(一) DOM加载完毕 IE会提前出发
 		if ( document.readyState === "complete" ) {
 			// Handle it asynchronously to allow scripts the opportunity to delay ready
-			// hack写法，兼容IE
+			// hack写法,兼容IE
 			setTimeout( jQuery.ready );
 
 		} else {
 
 			// Use the handy event callback
-			// DOM没有加载完毕时，监测
+			// DOM没有加载完毕时,监测
 			document.addEventListener( "DOMContentLoaded", completed, false );
 
 			// A fallback to window.onload, that will always work
-			// 如果浏览器有缓存事件，则load会比DOMContentLoaded先触发，所以两个事件都要监听
+			// 如果浏览器有缓存事件,则load会比DOMContentLoaded先触发,所以两个事件都要监听
 			window.addEventListener( "load", completed, false );
 		}
 	}
@@ -1686,11 +1686,11 @@ jQuery.ready.promise = function( obj ) {
 
 //步骤四、[89]
 //complete()回调
-//这是一个自执行匿名函数中的局部函数，在自执行匿名函数内都可见，所以上述监听事件可以直接调用
+//这是一个自执行匿名函数中的局部函数,在自执行匿名函数内都可见,所以上述监听事件可以直接调用
 
 // The ready event handler and self cleanup method
 completed = function() {
-    //尽管在jQuery.ready.promise两个事件都监听了，但是这里都取消了，所以任何一个监听事件触发，另外一个监听事件因为取消了不会再次执行，jQuery.ready();只会执行一次
+    //尽管在jQuery.ready.promise两个事件都监听了,但是这里都取消了,所以任何一个监听事件触发,另外一个监听事件因为取消了不会再次执行,jQuery.ready();只会执行一次
 	document.removeEventListener( "DOMContentLoaded", completed, false );
 	window.removeEventListener( "load", completed, false );
 	jQuery.ready();
@@ -1702,7 +1702,7 @@ completed = function() {
 // Handle when the DOM is ready
 ready: function( wait ) {
 	//和$.holdRady()有关
-	//--jQuery.readyWait如果hold了N次，则不会触发DOM加载事件，而是返回
+	//--jQuery.readyWait如果hold了N次,则不会触发DOM加载事件,而是返回
 	//如果jQuery.isReady为true则已经触发了一次了
 	// Abort if there are pending holds or we're already ready
 	if ( wait === true ? --jQuery.readyWait : jQuery.isReady ) {
@@ -1713,7 +1713,7 @@ ready: function( wait ) {
 	jQuery.isReady = true;
 
 	// If a normal DOM Ready event fired, decrement, and wait if need be
-	// 如果释放hold,则全部释放完后才能继续执行下面的DOM加载事件，否则return
+	// 如果释放hold,则全部释放完后才能继续执行下面的DOM加载事件,否则return
 	if ( wait !== true && --jQuery.readyWait > 0 ) {
 		return;
 	}
@@ -1743,19 +1743,19 @@ ready: function( wait ) {
 
 (一)、浏览器加载页面过程
 
-- 创建`Document`对象，解析Web页面，解析HTML元素和相应的文本内容添加`Element`对象和`Text`节点到文档中，此时`document.readyState = 'loading'`
-- 当HTML解析器遇到没有`async`和`defer`属性的`<script>`元素时，把元素添加到文档中，执行内部脚步或引用的外部脚本，这些脚本会同步执行，并且脚本下载和执行时HTML解析器暂停解析HTML元素，此时如果脚本中使用了`document.write()`方法，就会把该方法的内容插入输入流中，解析器恢复时这些文本会成为文档的一部分
-- 当解析器遇到了`async`属性的`<script>`元素时，开始下载脚本文本，并继续解析文档，意思是`async`属性的`<script>`元素异步执行，不会阻塞文档的解析，需要注意异步脚本禁止使用`document.write()`方法，因为此时文档不会暂停等待`document.write()`内容的插入，而是继续下载执行
-- 如果文档(文档流，不包括图片等其他内容)析完，则`document.readyState = 'interactive'`
-- 此时因为文档解析完毕，执行带有属性`defer`的`<script>`脚本，需要注意`async`属性的脚本如果在文档流解析完毕还没有执行完毕时此时也会继续执行，`defer`的`<script>`脚本可以访问完整的文档树，因为此时文档流已经解析完毕，但是也禁止使用`document.write()`方法
-- 如果 带有属性`defer`的`<script>`脚本加载完毕，浏览器在`Document`对象上触发了`DOMContentLoaded`事件，这标志着程序执行从同步脚本执行 阶段转换到了异步时间驱动阶段，这时异步脚本能可能没有执行完成。
-- 文档已经完全解析完成，浏览器可能还在等待其他内容载入，比如图片，当所有的内容载入完成并且所有的异步脚本完成载入和执行，`document.readState='complete'`， Web浏览器触发`Window`对象上的`load`事件
-- 之后就是调用异步事件,以异步响应用户输入事件，网络事件，计时器过期等
+- 创建`Document`对象,解析Web页面,解析HTML元素和相应的文本内容添加`Element`对象和`Text`节点到文档中,此时`document.readyState = 'loading'`
+- 当HTML解析器遇到没有`async`和`defer`属性的`<script>`元素时,把元素添加到文档中,执行内部脚步或引用的外部脚本,这些脚本会同步执行,并且脚本下载和执行时HTML解析器暂停解析HTML元素,此时如果脚本中使用了`document.write()`方法,就会把该方法的内容插入输入流中,解析器恢复时这些文本会成为文档的一部分
+- 当解析器遇到了`async`属性的`<script>`元素时,开始下载脚本文本,并继续解析文档,意思是`async`属性的`<script>`元素异步执行,不会阻塞文档的解析,需要注意异步脚本禁止使用`document.write()`方法,因为此时文档不会暂停等待`document.write()`内容的插入,而是继续下载执行
+- 如果文档(文档流,不包括图片等其他内容)析完,则`document.readyState = 'interactive'`
+- 此时因为文档解析完毕,执行带有属性`defer`的`<script>`脚本,需要注意`async`属性的脚本如果在文档流解析完毕还没有执行完毕时此时也会继续执行,`defer`的`<script>`脚本可以访问完整的文档树,因为此时文档流已经解析完毕,但是也禁止使用`document.write()`方法
+- 如果 带有属性`defer`的`<script>`脚本加载完毕,浏览器在`Document`对象上触发了`DOMContentLoaded`事件,这标志着程序执行从同步脚本执行 阶段转换到了异步时间驱动阶段,这时异步脚本能可能没有执行完成。
+- 文档已经完全解析完成,浏览器可能还在等待其他内容载入,比如图片,当所有的内容载入完成并且所有的异步脚本完成载入和执行,`document.readState='complete'`, Web浏览器触发`Window`对象上的`load`事件
+- 之后就是调用异步事件,以异步响应用户输入事件,网络事件,计时器过期等
 
 
 (二)、`readyList.resolveWith( document, [ jQuery ] );`
 
-- 参数一是`context`，即传递上下文
+- 参数一是`context`,即传递上下文
 - 参数二是一个需要传入的参数数组给完成的回调函数
 
 ``` javascript
@@ -1796,7 +1796,7 @@ readyWait: 1,
 // Hold (or release) the ready event
 holdReady: function( hold ) {
 	if ( hold ) {
-		//如果有多个需要hold的异步文件，则++多次
+		//如果有多个需要hold的异步文件,则++多次
 		jQuery.readyWait++;
 	} else {
 		jQuery.ready( true );
@@ -1809,7 +1809,7 @@ holdReady: function( hold ) {
 >内容解析
 
 ``` javascript
-//异步加载外部文件，需要注意async属性只能用于外部文件
+//异步加载外部文件,需要注意async属性只能用于外部文件
 $.getScript('a.js', function(){
 
 });
@@ -1821,13 +1821,13 @@ $(function () {
 //此时先2后1,DOMContentLoaded事件比异步事加载javascript事件先触发
 ```
 
-解决异步文件先执行，然后再执行`DOM`加载完毕事件
+解决异步文件先执行,然后再执行`DOM`加载完毕事件
 
 ``` javascript
 //延迟DOM加载完成事件
 $.holdReady(true);
 
-//异步加载外部文件，需要注意async属性只能用于外部文件
+//异步加载外部文件,需要注意async属性只能用于外部文件
 $.getScript('a.js', function(){
     //a.js　-> alert(1)
 	//释放延迟
@@ -1884,8 +1884,8 @@ isArray: Array.isArray,
 ``` javascript
 //[415]
 isWindow: function( obj ) {
-	//obj != null 详见(一)，除了传入null和undefined不执行第二个&&
-	//其他都会执行第二个&&进行判断，因为null和undefined不是包装对象，不可能有.window这样的属性
+	//obj != null 详见(一),除了传入null和undefined不执行第二个&&
+	//其他都会执行第二个&&进行判断,因为null和undefined不是包装对象,不可能有.window这样的属性
 	//obj.window 详见(二)
 	return obj != null && obj === obj.window;
 },
@@ -1927,7 +1927,7 @@ isNumeric: function( obj ) {
 >内容解析
 
 ``` javascript
-console.log(typeof NaN);	//number，所以不能用typeof来判断是否为数字
+console.log(typeof NaN);	//number,所以不能用typeof来判断是否为数字
 ```
 
 ### 5.9 $.type()
@@ -1945,7 +1945,7 @@ type: function( obj ) {
 		return String( obj );
 	}
 	// Support: Safari <= 5.1 (functionish RegExp)
-	//如果是对象或函数，兼容性，Safari5.1
+	//如果是对象或函数,兼容性,Safari5.1
 	return typeof obj === "object" || typeof obj === "function" ?
 		//引用数据类型检测
 		class2type[ core_toString.call(obj) ] || "object" :
@@ -2058,7 +2058,7 @@ function Test() {
 	<script>
 
 		window.onload = function() {
-            var child_index= document.getElementById('iframe');		//注意与$('#iframe')的区别，一个是DOM对象，一个是jQuery对象
+            var child_index= document.getElementById('iframe');		//注意与$('#iframe')的区别,一个是DOM对象,一个是jQuery对象
 
             (function fn() {
                 if(!child_index && !child_index.contentWindow && !child_index.contentWindow.document) {
@@ -2082,7 +2082,7 @@ function Test() {
 </html>
 ```
 
->提示： 使用`child_index.html`页面实例化的对象和`index.html`页面实例化的对象是两个不同的执行环境，所以没办法进行检测
+>提示： 使用`child_index.html`页面实例化的对象和`index.html`页面实例化的对象是两个不同的执行环境,所以没办法进行检测
 
 
 ### 5.10 $.isPlantObject()
@@ -2109,7 +2109,7 @@ isPlainObject: function( obj ) {
 	// the "constructor" property of certain host objects, ie. |window.location|
 	// https://bugzilla.mozilla.org/show_bug.cgi?id=814622
 	try {
-		//4.系统自带的对象,例如window.location,不是node节点，$.type又会返回object
+		//4.系统自带的对象,例如window.location,不是node节点,$.type又会返回object
 		//详见(一)、(二)
 		//obj.constructor指向对象的构造函数
 		//obj.constructor.prototype指向构造函数对应的原型对象
@@ -2151,8 +2151,8 @@ Obj.prototype.addr = 'zjut';
 
 //是否是原型对象的属性和方法
 function hasPrototypeProperty(obj,key) {
-    //1.如果是自己的属性返回false，表明不是原型对象的属性
-    //2.如果能使用in遍历，1返回true,则是原型对象的属性，使用in可以遍历自己的属性和原型对象的属性
+    //1.如果是自己的属性返回false,表明不是原型对象的属性
+    //2.如果能使用in遍历,1返回true,则是原型对象的属性,使用in可以遍历自己的属性和原型对象的属性
     return !obj.hasOwnProperty(key) && (key in obj);
 }
 
@@ -2165,7 +2165,7 @@ alert(hasPrototypeProperty(obj,'addr'));		//true
 
 (二)、`isPrototypeOf`
 
-创建了自定义的构造函数后，其原型对象的默认只会取得`constructor`属性，其余都是从`Object`继承而来，当调用构造函数创建新实例后，该实例内部将包含一个指向构造函数原型对象的指针（`[[Prototype]]` 内部属性，注意是实例的属性而非构造函数的属性），脚本中没有标准的方式访问`[[Prototype]]`，但在一些浏览器诸如Firefox、Safari、Chrome在每个对象上都支持属性`__proto__`，这个指针连接存在于实例对象与构造函数的原型对象之间，不是实例对象与构造函数之间，调用构造函数创建的实例都有`[[Prototype]]`属性，但是无法访问。唯一的方法是可以通过`isPrototypeOf()`方法来确定实例对象和原型对象之间是否存在这种关系。
+创建了自定义的构造函数后,其原型对象的默认只会取得`constructor`属性,其余都是从`Object`继承而来,当调用构造函数创建新实例后,该实例内部将包含一个指向构造函数原型对象的指针（`[[Prototype]]` 内部属性,注意是实例的属性而非构造函数的属性）,脚本中没有标准的方式访问`[[Prototype]]`,但在一些浏览器诸如Firefox、Safari、Chrome在每个对象上都支持属性`__proto__`,这个指针连接存在于实例对象与构造函数的原型对象之间,不是实例对象与构造函数之间,调用构造函数创建的实例都有`[[Prototype]]`属性,但是无法访问。唯一的方法是可以通过`isPrototypeOf()`方法来确定实例对象和原型对象之间是否存在这种关系。
 
 ``` javascript
 function Obj() {
@@ -2197,14 +2197,14 @@ console.log(Object.prototype.isPrototypeOf(data));				//true
 // Date.prototype -> Object.prototype Date.prototype相对于Object.prototype而言就是实例对象
 ```
 
-`isPrototypeOf`属性是`Object.prototype`的自有属性，其他对象所持有的该属性都是继承的。
+`isPrototypeOf`属性是`Object.prototype`的自有属性,其他对象所持有的该属性都是继承的。
 
 
 ```
 //是否是原型对象的属性和方法
 function hasPrototypeProperty(obj,key) {
-    //1.如果是自己的属性返回false，表明不是原型对象的属性
-    //2.如果能使用in遍历，1返回true,则是原型对象的属性，使用in可以遍历自己的属性和原型对象的属性
+    //1.如果是自己的属性返回false,表明不是原型对象的属性
+    //2.如果能使用in遍历,1返回true,则是原型对象的属性,使用in可以遍历自己的属性和原型对象的属性
     return !obj.hasOwnProperty(key) && (key in obj);
 }
 
@@ -2228,8 +2228,8 @@ isEmptyObject: function( obj ) {
 	var name;
 	//可以遍历原型对象的属性和方法
 	//for-in只遍历可枚举的属性
-	//原型对象的系统自带属性可能是不可枚举的，所以虽然可以遍历原型对象的属性和方法
-	//但是for in遍历不到系统自带的属性和方法，可以用来检测对象是否为空对象
+	//原型对象的系统自带属性可能是不可枚举的,所以虽然可以遍历原型对象的属性和方法
+	//但是for in遍历不到系统自带的属性和方法,可以用来检测对象是否为空对象
 	for ( name in obj ) {
 		return false;
 	}
@@ -2401,7 +2401,7 @@ globalEval: function( code ) {
 - 其他的间接调用则使用全局对象作为其上下文作用域
 
 ```
-var geval = eval; //使用别名调用eval将是全局eval，这算是间接调用
+var geval = eval; //使用别名调用eval将是全局eval,这算是间接调用
 var x = 'x global';
 var y = 'y global';
 function f(){
@@ -2499,7 +2499,7 @@ console.log($.nodeName($('div')[0],'DIV')); //true
 ### 5.20 $.each()
 
 - 遍历
-- 参数一 index 
+- 参数一 index
 - 参数二 value
 - 参数三 内部使用
 
@@ -2513,7 +2513,7 @@ each: function( obj, callback, args ) {
 		length = obj.length,
 		//判断是否是类数组对象
 		isArray = isArraylike( obj );
-	
+
 	//如果第三参数存在,内部使用
 	if ( args ) {
 		if ( isArray ) {
@@ -2589,7 +2589,7 @@ $.each(arr,function(index,value) {
 var arr = [1,2,3];
 
 $.each(arr,function(index,value) {
-   console.log(this.valueOf());  //1 2 3 
+   console.log(this.valueOf());  //1 2 3
 });
 ```
 
@@ -2617,7 +2617,7 @@ trim: function( text ) {
 ```
 
 ### 5.22 $.makeArray()
-- 参数一 
+- 参数一
 - 参数二 内部使用
 
 >源码
@@ -2630,7 +2630,7 @@ makeArray: function( arr, results ) {
 
 	//第一参数如果不存在返回空数组
 	if ( arr != null ) {
-		//Object(arr) 
+		//Object(arr)
 		//字符串形式 '123' -> ['123']
 		//详见(一)
 		//需要注意数组是走这里
@@ -2639,7 +2639,7 @@ makeArray: function( arr, results ) {
 				typeof arr === "string" ?
 				[ arr ] : arr
 			);
-		//数字形式,详见(二)	
+		//数字形式,详见(二)
 		} else {
 			core_push.call( ret, arr );
 		}
@@ -2657,7 +2657,7 @@ makeArray: function( arr, results ) {
 
 ```
 var str = '123'
-console.log(Object(str));   
+console.log(Object(str));
 //String {0: "1", 1: "2", 2: "3", length: 3, [[PrimitiveValue]]:
 console.log($.makeArray(str));  //['123']
 ```
@@ -2741,7 +2741,7 @@ merge: function( first, second ) {
 		for ( ; j < l; j++ ) {
 			first[ i++ ] = second[ j ];
 		}
-	// $.merge(['a','b'],{0:'a',1:'b'})	
+	// $.merge(['a','b'],{0:'a',1:'b'})
 	} else {
 		while ( second[j] !== undefined ) {
 			first[ i++ ] = second[ j++ ];
@@ -2771,7 +2771,7 @@ grep: function( elems, callback, inv ) {
 		ret = [],
 		i = 0,
 		length = elems.length;
-	//!! 转换为布尔值	
+	//!! 转换为布尔值
 	inv = !!inv;
 
 	// Go through the array, only saving the items
@@ -2860,7 +2860,7 @@ map: function( elems, callback, arg ) {
 
 ```
 var arr = [1,2,3];
-        
+
 var newArr = $.map(arr,function(value,index) {
     return value + 1;
 });
@@ -2876,7 +2876,7 @@ console.log(newArr); //[2,3,4]
 
 
 // A global GUID counter for objects
-guid: 1,  
+guid: 1,
 
 
 ### 5.28 $.proxy()
@@ -2964,7 +2964,7 @@ $(document).click($.proxy(obj,'show'));     //改变了绑定事件函数中的t
   console.log(Array.isArray([].slice.call(json))) //true
   console.log([].slice.call(json));               //[0,1,2]
 ```
-	
+
 (三) `$.proxy()`参数详见
 
 
@@ -3059,7 +3059,7 @@ access: function( elems, fn, key, value, chainable, emptyGet, raw ) {
 	if ( jQuery.type( key ) === "object" ) {
 		chainable = true;
 		for ( i in key ) {
-			//递归调用 
+			//递归调用
 			jQuery.access( elems, fn, i, key[i], true, emptyGet, raw );
 		}
 
@@ -3068,7 +3068,7 @@ access: function( elems, fn, key, value, chainable, emptyGet, raw ) {
 	// $('#div1').css('width','200px')
 	} else if ( value !== undefined ) {
 		chainable = true;
-		
+
 		// value是否是函数
 		if ( !jQuery.isFunction( value ) ) {
 			raw = true;
@@ -3100,7 +3100,7 @@ access: function( elems, fn, key, value, chainable, emptyGet, raw ) {
 			}
 		}
 	}
-	
+
 	// 判断是设置还是获取
 	return chainable ?
 		elems :
@@ -3140,7 +3140,7 @@ access: function( elems, fn, key, value, chainable, emptyGet, raw ) {
 ```
 //和(new Date()).getTime()功能类似
 //ECMAScript 5方法
-now: Date.now,  
+now: Date.now,
 ```
 
 ### 5.31 $.swap()
@@ -3201,7 +3201,7 @@ divDom.style.position = 'absolute';
 console.log(divDom.offsetWidth); //100 此时可以获取宽度了
 
 //重新改回原来的样式
-divDom.style.cssText = oldStyle;	
+divDom.style.cssText = oldStyle;
 ```
 
 
@@ -3321,14 +3321,295 @@ jQuery.Callbacks = function( options ) {
 		locked:
 		fireWith:
 		fire:        //执行监听的回调函数
-		fired: 
+		fired:
 	}
-	
+
 	return self;
 }
 ```
 
 >内容解析
+
+
+(一) 闭包
+
+闭包可以捕捉到局部变量（和参数）,并一直保存下来. 如果存在嵌套的函数,函数都有各自对应的作用域链,并且这个作用域链指向一个变量绑定对象,如果函数定义了嵌套函数,并将它作为返回值返回或者存储在某处的属性里,这时就会有一个外部引用指向这个嵌套的函数,就不会被当做垃圾回收,它所指向的变量绑定对象也不会被当做垃圾回收,闭包容易造成内存泄漏.
+
+- 创建闭包的常见方式就是在一个函数内部创建另一个函数
+
+
+```
+function campareFunction(propertyName){
+   return function(obj1,obj2){ //一个匿名的内部函数
+       var value1 = obj1[propertyName];
+       var value2 = obj2[propertyName];
+
+       if(value1 < value2){
+           return -1;
+       }else if(value1 > value2){
+           return 1;
+       }else{
+           return 0;
+       }
+   }
+}
+
+//即使内部的匿名函数被返回了，并且在其他地方被调用了，但它仍然可以访问propertyName
+//因为内部函数中的作用域链包含了campareFunction()的作用域
+
+```
+
+- 作用域链: 当某个函数被调用时会创建一个执行环境及相应的作用域链。然后使用arguments和其他命名参数的值来初始化函数的活动对象。但是在作用域链中，外部函数的活动对象始终处于第二位,外部函数的外部函数的活动对象处于第三位.....直至作为作用域链终点的全局执行环境
+
+```
+function compare1(value1,value2){
+    if(value1 < value2){
+        return -1;
+    }else if(value1 > value2){
+        return 1;
+    }else{
+        return 0;
+    }
+}
+var result = compare1(5,10);
+
+//第一次调用compare函数时会创建包含this、arguments、value1和value2的活动对象
+//全局执行环境的变量对象（包含this[全局this指向undeifned或window对象]result和compare）在compare()执行环境的作用域链中则处于第二位
+
+
+compare执行环境   <--------------------------------------------------------
+(scope chain)     -------->   scope Chain                                     |
+                               1    -------------->   Global variable object  |
+                               0    ------                 compare      ------
+                                         |                 result     undefined
+                                         |
+                                         |-------->   compare() activation object
+                                                           arguments   [5,10]
+                                                           value1       5
+                                                           value2       10
+
+
+//后台每个执行环境都有一个表示变量的对象----变量对象，全局环境的变量对象始终存在，
+//而像compare()函数这样的局部环境的变量对象，则只在函数的执行过程中存在
+//在创建compare()函数时，会创建一个预先包含全局变量对象的作用域链，这个作用域链被保存在内部的[[Scope]]属性中
+//当调用compare()函数时，会为函数创建一个执行环境，然后通过赋复制函数的[[Scope]]属性中的对象构建执行环境的作用域链
+//此后又有一个compare活动对象(在此作为变量对象使用)被创建并被推入执行环境作用域的<前端>！
+//在这里的compare执行环境作用域链包含两个变量对象，本地活动对象和全局变量对象。
+//作用域链本质上是一个指向变量对象的指针列表，它只引用但不实际包含变量对象
+
+//一般来说，函数执行完毕后，局部活动对象就会被销毁，内存中仅保存全局作用域（Global variable object）。
+//但是闭包的情况却不同。
+
+
+function campareFunction(propertyName){
+    return function(obj1,obj2){ //一个匿名的内部函数
+        var value1 = obj1[propertyName];
+        var value2 = obj2[propertyName];
+
+        if(value1 < value2){
+            return -1;
+        }else if(value1 > value2){
+            return 1;
+        }else{
+            return 0;
+        }
+    }
+}
+
+
+//在另一个函数内部定义的函数会将包含函数（即外部函数）的活动对象添加到它的作用域链中
+//因此在campareFunction()函数内部定义的匿名函数的作用域链中，实际上会包含外部函数campareFunction()的活动对象
+
+var compare = campareFunction("name");
+//name传入propertyName,且被保存了下来,因为内部返回的匿名函数被外部的变量compare所引用
+var result = compare({name:"Victor"},{name:"Hugo"});
+write(result); //1
+
+/*
+campareFunction执行环境
+ （scope chain）  ----> Scope Chain
+                        1   -----------> Global variable object
+                        0   ---         campareFunction ->[campareFunction执行环境]
+                               |         result
+			                             compare
+                               |
+                               |
+                               --------> campareFunction() activation object
+                                         arguments
+                                         propertyName
+
+ annoymous（匿名函数）执行环境
+（scope chain）  ---------> Scope Chain
+                            2   ------------> Global variable object(和上面一样)
+                            1   ------------> campareFunction() activation object
+                            0   ------------> Closure activation object
+                                              arguments
+                                              obj1
+                                              obj2
+*/
+
+//在匿名函数从campareFunction()函数中被返回后，它的作用域链初始化为包含campareFunction活动对象和全局变量对象
+//匿名函数就可以访问在campareFunction()函数中定义的所有变量
+//并且campareFunction()函数在执行完毕后活动对象也不会被销毁，
+//因为返回的是匿名函数，匿名函数的作用域链仍然在引用这个(campareFunction()函数的)活动对象
+//campareFunction返回后，campareFunction执行环境中的作用域链被销毁了，但是它的活动对象仍然会留在内存中,
+//直到匿名函数被销毁，campareFunction的活动对象才会被销毁
+
+//解除对匿名函数的引用（以便释放内存）
+compare  = null;//通知垃圾回收例程将其清除，随着匿名函数的作用域链被销毁，其他作用域链（除了全局作用域）也都可以
+
+//由于闭包会携带包含它的函数的作用域
+//会比其他函数占用更多的内存
+//过度使用闭包会导致内存占用过多
+//在绝对必要时考虑使用闭包
+
+```
+
+深入理解闭包
+
+```
+function creatFunction(){
+    var result = new  Array();
+
+    for(var i=0; i<10; i++){
+        result[i] = function(){
+            return i; //注意i是外部函数的活动对象的属性，而不是匿名函数对象的属性
+        };
+    }
+    return result; //返回的是一个函数数组，这个数组里的元素都是函数
+}
+
+var result = [];
+result = creatFunction();
+
+write(result[0]()); //10
+
+for(var i=0; i<10; i++){
+    write(result[i]()); //每一个都是10
+}
+
+
+//闭包只能取得包含函数中任何变量的最后一个值
+//闭包保存的是整个变量对象，而不是某个特殊的变量
+//每个函数都返回10
+//因为每个函数的作用域链中都保存着creatFunction()函数的活动对象
+//所以它们引用的都是同一个变量i
+//当creatFunction函数返回后，变量i的值都是10
+
+
+//总结一下就是返回外部函数的时候，因为返回的是内部的匿名函数，根据匿名函数的作用域链包含着全局对象和包含它的外部函数的活动对象
+//所以匿名函数的作用域链仍然在引用这个外部函数的活动对象，这个外部函数的活动对象在外部函数执行完毕后仍然不会销毁
+//但是匿名函数指针只能指向包含外部函数最后一次执行情况的对应的活动对象里的属性值的匿名函数
+//闭包保存的是整个外部函数的活动对象，而不是某个变量值，这个活动对象包括arguments,函数参数以及函数内的局部变量等
+
+```
+
+闭包中的`this`对象
+
+```
+//匿名函数的执行环境具有全局性，因此this对象通常指向window
+var f = function(){
+    return function(){
+        write(this);
+    }();
+}
+
+f();//[object Window]
+
+var name = "The Window";
+
+var object = {
+    name: "The Object",
+
+    getNameFun: function(){
+        return function(){
+            return this.name;
+        }
+    }
+};
+write(object.getNameFun()()); //The Window
+
+//为什么匿名函数没有取得其包含作用域（或外部作用域）的this对象呢？
+//每个函数在被调用时都会自动取得两个特殊变量：this和arguments
+//因为这个是函数的内部属性，所以内部函数在搜索这两个变量时，只会搜索到其活动对象为止，
+//每个活动对象都有自己的arguments和this属性
+//因此永远不可能直接访问外部函数中的这两个变量
+//又因为匿名函数中的this对象通常指代window对象，所以返回的是The Window
+
+
+//补救方法
+var age = 13;
+var obj = {
+    age:14,
+    getAgeFun:function(){
+        var that = this; //调试结果：that = Object {age: 14}     this指代的是上下环境中的对象本身
+        return function(){
+            return that.age;
+        };
+    }
+};
+
+write(obj.getAgeFun()()); //14
+
+//this和arguments都存在同样的问题，如果想访问作用域中的arguments对象，
+//必须将对该对象的引用保存到另一个闭包能够访问的变量中
+```
+
+
+
+(二)  $.Callback的闭包架构
+
+```
+(function(window) {
+    ziyi2 = {};
+
+    ziyi2.info = function() {
+	    //list变量是info函数的作用域链对应的活动对象的属性
+        var list = []
+	        //返回的是一个对象,该对象的每一个属性都是函数
+	        //这些函数的活动对象不会被释放
+            , self = {
+                push: function(item) {
+	                //push函数的作用域可以访问外部info函数的变量
+	                //push函数的作用域链包含了外部info函数对应的活动对象
+                    list.push(item);
+                },
+                shift: function() {
+                    list.shift();
+                },
+                log: function() {
+                    console.log(list);
+                }
+            };
+        return self;
+    };
+    window.ziyi2 = ziyi2;
+})(window,undefined)
+
+var info = ziyi2.info(); //info函数执行完毕后它的作用域链被销毁,但是因为内部有函数被外部info变量(var info)所引用,所以ziyi2.info函数的活动对象并没有被释放,而是放在了内部函数(push/shift/log)的作用域链中了,此时ziyi2.info函数的list数组变量并不会像其他函数一样在执行完毕后被认作局部变量而释放(垃圾回收机制判定list数组一直被保持引用,所以不会释放它)
+info.push(1);
+info.push(2);
+info.log();     //[1,2] 此时list数组没有被释放,所以可以得到push后的值
+info.shift();
+info.log();     //[2] list数组仍然没有被释放
+
+
+var info_copy = info;  //ziyi2.info内部的函数被info_copy所引用
+info = null;           //释放了info变量的引用
+
+info_copy.log();       //[2] list数组仍然没有被释放
+//info_copy = null;      //此时释放了list数组,内存不会被泄露
+
+info = ziyi2.info();
+info.log();             //[] 需要注意的是这是一个新的list数组内存,和info_copy所引用的不一样
+
+info_copy = null;
+
+info.log();            //[]
+info = null;           //释放所有内存
+```
+
+(三) 使用案例解析
 
 按顺序触发想要执行的函数
 ```
@@ -3346,7 +3627,7 @@ var callbacks = $.Callbacks();
 callbacks.add(fn1);
 callbacks.add(fn2);
 
-callbacks.fire(); //111 222 
+callbacks.fire(); //111 222
 ```
 
 
@@ -3408,3 +3689,127 @@ var callbacks = $.Callbacks();
 
  callbacks.fire(); //111 333
 ```
+
+(四) 参数解析
+- `once` 回调函数只能被执行一次
+- `memory`  Callback.fired()之后的回调函数也会被追踪并执行
+- `unique` 确保回调的函数只能被添加一次
+- `stopOnFalse`  如果回调函数返回false则中断执行回调
+
+
+所有需要执行的回调函数都会放在一个闭包的`list`数组中,只要`$.Callbacks()`不被释放,则`list`数组的内存不会被释放,执行`add`函数会添加回调函数到`list`数组中,而执行`fire`函数则会遍历执行`list`数组,需要注意`fire`函数可以传入回调函数需要执行的参数.
+
+
+
+`once`
+
+```
+//没有参数
+var callbacks = $.Callbacks();
+
+function fn1() {
+ console.log('111');
+}
+
+function fn2() {
+ console.log('222');
+}
+
+
+callbacks.add(fn1);
+
+callbacks.fire(); //111
+callbacks.fire(); //111
+
+//有参数
+var callbacks = $.Callbacks('once');
+
+function fn1() {
+    console.log('111');
+}
+
+function fn2() {
+    console.log('222');
+}
+
+
+callbacks.add(fn1);
+
+callbacks.fire(); //111 因为有once参数,第一次执行完fire之后清空了list数组
+callbacks.fire(); //这个不会执行
+```
+
+`memory`
+
+```
+//没有参数
+var callbacks = $.Callbacks();
+
+function fn1() {
+    console.log('111');
+}
+
+function fn2() {
+    console.log('222');
+}
+
+callbacks.add(fn1);
+callbacks.fire(); //111
+callbacks.add(fn2);
+
+//有参数
+var callbacks = $.Callbacks("memory");
+
+function fn1() {
+    console.log('111');
+}
+
+function fn2() {
+    console.log('222');
+}
+
+callbacks.add(fn1);
+callbacks.fire();   //111
+callbacks.add(fn2); //222 在add的同时fire了
+```
+
+`unique`
+
+```
+var callbacks = $.Callbacks("unique");
+
+function fn1() {
+    console.log('111');
+}
+
+function fn2() {
+    console.log('222');
+}
+
+
+callbacks.add(fn1);
+callbacks.add(fn1); //第二次不会在add同样的回调函数了
+
+callbacks.fire();   //111 list数组中只有一个需要fire的回调函数
+```
+
+`stopOnFalse`
+```
+//有参数
+var callbacks = $.Callbacks('stopOnFalse');
+
+function fn1() {
+    console.log('111');
+    return false;
+}
+
+function fn2() {
+    console.log('222');
+}
+
+callbacks.add(fn1);
+callbacks.add(fn2);
+
+callbacks.fire();  //111 遇到false之后break出了list,后面的回调函数就不会执行了
+```
+
