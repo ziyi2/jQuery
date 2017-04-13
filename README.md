@@ -3690,6 +3690,24 @@ var callbacks = $.Callbacks();
  callbacks.fire(); //111 333
 ```
 
+同时`add`多个回调函数
+
+```
+$callback = $.Callbacks();
+function fn1() {
+    console.log(1);
+}
+
+function fn2() {
+    console.log(2);
+}
+
+$callback.add(fn1,fn2);
+//$callback.add([fn1,fn2]) 数组也行
+$callback.fire(); //1 2 
+```
+
+
 (四) 参数解析
 - `once` 回调函数只能被执行一次
 - `memory`  Callback.fired()之后的回调函数也会被追踪并执行
@@ -3812,4 +3830,317 @@ callbacks.add(fn2);
 
 callbacks.fire();  //111 遇到false之后break出了list,后面的回调函数就不会执行了
 ```
+
+
+
+### 7. 1 `options`
+
+>源码
+```
+// [2846]
+// String to Object options format cache
+var optionsCache = {};
+
+// Convert String-formatted options into Object-formatted ones and store in cache
+function createOptions( options ) {
+	// 给每一个传入的参数创建一个optionsCache对象的属性
+	// 因为使用$Calllback的情况可能很多
+	// 相当于为每一个调用的$Callback创建一个设置参数的属性
+	// 这个object可以加速设置属性值的速度
+	var object = optionsCache[ options ] = {};
+	// core_rnotwhite匹配空格
+	// 例如 options -> "memory unique"
+	// 最后变成了 optionsCache["memory unique"] = {memory:true,unique:true}
+	jQuery.each( options.match( core_rnotwhite ) || [], function( _, flag ) {
+		object[ flag ] = true;
+	});
+	return object;
+}
+
+
+// [2882]
+// Convert options from String-formatted to Object-formatted if needed
+// (we check in cache first)
+// 如果传入的不是字符串,如果是对象则options = options
+// 否则options = {} 空对象
+options = typeof options === "string" ?
+( optionsCache[ options ] || createOptions( options ) ) :
+jQuery.extend( {}, options );
+```
+
+
+
+### 7. 2 `$.Callback().add()`
+
+>源码
+
+```
+// Add a callback or a collection of callbacks to the list
+add: function() {
+    // 第一次进入的时候list = []
+	if ( list ) {
+		// First, we save the current length
+		var start = list.length;
+		// 这个自执行的匿名函数有什么作用?
+		(function add( args ) {
+			jQuery.each( args, function( _, arg ) {
+				var type = jQuery.type( arg );
+				if ( type === "function" ) {
+					// 如果options.unique = true
+					// 则继续判断是否已经添加了该回调函数
+					// 如果已经添加,则不会push
+					// 否则可以push
+					if ( !options.unique || !self.has( arg ) ) {
+						list.push( arg );
+					}
+				// 如果$.Callback的参数不是fn
+				// 如果arguments是数组
+				} else if ( arg && arg.length && type !== "string" ) {
+					// Inspect recursively
+					// 递归调用一个个push
+					add( arg );
+				}
+			});
+		})( arguments );
+		// Do we need to add the callbacks to the
+		// current firing batch?
+		// 
+		if ( firing ) {
+			firingLength = list.length;
+		// With memory, if we're not firing then
+		// we should call right away
+		// 如果memory存在,则直接fire()
+		// memory在内部的fire函数中会被赋值
+		// 需要注意这个memory只有在fire函数调用之后才会继续执行
+		} else if ( memory ) {
+			firingStart = start;
+			fire( memory );
+		}
+	}
+	// 链式调用?
+	return this;
+},
+```
+
+
+### 7. 3 `$.Callback().remove()`
+
+
+```
+// Remove a callback from the list
+remove: function() {
+	if ( list ) {
+		jQuery.each( arguments, function( _, arg ) {
+			var index;
+			// 查看是否在list数组中存在
+			// 这里index很巧妙
+			// 如果找不到这个函数,则不会从起始位置开始搜索
+			// 而是从当前搜索过的index开始继续向后搜索
+			while( ( index = jQuery.inArray( arg, list, index ) ) > -1 ) {
+				// 删除数组中的当前回调函数
+				list.splice( index, 1 );
+				// Handle firing indexes
+				if ( firing ) {
+					if ( index <= firingLength ) {
+						firingLength--;
+					}
+					if ( index <= firingIndex ) {
+						firingIndex--;
+					}
+				}
+			}
+		});
+	}
+	return this;
+},
+```
+
+### 7. 3 `$.Callback().has()`
+
+```
+// Check if a given callback is in the list.
+// If no argument is given, return whether or not list has callbacks attached.
+has: function( fn ) {
+	// 如果fn存在 则遍历是否存在 存在返回true
+	// 否则返回false
+	// 如果不传参数则看list.length 如果有则返回true
+	// 如果list为空,则返回false
+	return fn ? jQuery.inArray( fn, list ) > -1 : !!( list && list.length );
+},
+```
+
+
+
+### 7. 4 `$.Callback().fire()/firewith()/fire()`
+
+```
+// [3030]
+// self = { fire: function() {}}
+// Call all the callbacks with the given arguments
+fire: function() {
+    // 传入参数arguments 
+    // 详见(一)
+    self.fireWith( this, arguments );
+    // 链式调用
+	return this;
+},
+
+// Call all callbacks with the given context and arguments
+// [3017]	
+fireWith: function( context, args ) {
+    // 第一次fired = false 
+    // !fired = true
+    // 之后 fired = true 详见[2905] fired
+    // 因此要看stack 
+    // [2903] stack = !options.once && [],
+    // 如果options.once = true 则stack = false
+    // 因此不会fire第二次了
+    // 如果once = false  则stack = []
+    // 则可以继续第二次的fire
+	if ( list && ( !fired || stack ) ) {
+		// 保存参数
+		args = args || [];
+		// args.length = 2
+		args = [ context, args.slice ? args.slice() : args ];
+		//详见(二)
+		//如果[2905] fire函数正在执行回调函数的时候
+		//在回调函数中调用了$callback.fire()函数
+		//此时这个if就会执行了,stack默认是空数组 [].push(args)
+		if ( firing ) {
+			stack.push( args );
+		// 执行fire	
+		} else {
+			fire( args );
+		}
+	}
+	return this;
+},
+
+// Fire callbacks
+// [2905]
+fire = function( data ) {
+    //memory 如果为true memory = data
+	memory = options.memory && data;
+	//表明已经fire过一次了
+	fired = true;
+	firingIndex = firingStart || 0;
+	firingStart = 0;
+	firingLength = list.length;
+	//正在fire
+	firing = true;
+	for ( ; list && firingIndex < firingLength; firingIndex++ ) {
+		//apply第二个参数可以是数组
+		//第一个是需要传入的this
+		//如果stopOnFlase =true 且回调函数返回false
+		//则跳出循环
+		if ( list[ firingIndex ].apply( data[ 0 ], data[ 1 ] ) === false && options.stopOnFalse ) {
+			memory = false; // To prevent further calls using add
+			break;
+		}
+	}
+	//回调执行结束
+	firing = false;
+	if ( list ) {
+		//详见(二)
+		//如果在回调函数执行的同时进行了fire操作
+		if ( stack ) {
+			if ( stack.length ) {
+				//则继续执行fire
+				fire( stack.shift() );
+			}
+		//考虑 $.Callback('once memory')情况	
+		} else if ( memory ) {
+			list = [];
+		} else {
+			self.disable();
+		}
+	}
+},
+```
+
+
+>内容解析
+
+(一)  传入回调函数的参数
+
+```
+$callback = $.Callbacks();
+function fn1(n) {
+    console.log(n);
+}
+
+function fn2(n) {
+    console.log(n);
+}
+
+
+$callback.add(fn1,fn2);
+$callback.fire('hello'); //hello hello
+
+$callback.remove(fn1,fn2).add(fn1,fn2).fire('hello1');
+//hello hello
+```
+
+(二)  正在执行回调时进行`Callback`函数的动作
+
+
+
+```
+$callback = $.Callbacks();
+function fn1(n) {
+
+    console.log('fn1' + n);
+    $callback.fire('hello1');  //死循环了,一直执行fn1和fn2,导致栈溢出
+    //需要注意的是,如果没有做特殊处理,起始一直会执行fn1
+    //但是这里也处理了fn2
+    //内部操作,等所有的回调函数都执行完毕了,继续执行回调函数中的fire函数
+}
+
+function fn2(n) {
+    console.log("fn2" + n);
+}
+
+
+$callback.add(fn1,fn2);
+$callback.fire('hello');
+```
+
+
+### 7. 5 other API
+
+```
+// Remove all callbacks from the list
+empty: function() {
+	list = [];
+	firingLength = 0;
+	return this;
+},
+// Have the list do nothing anymore
+disable: function() {
+	list = stack = memory = undefined;
+	return this;
+},
+// Is it disabled?
+disabled: function() {
+	return !list;
+},
+// Lock the list in its current state
+lock: function() {
+	stack = undefined;
+	if ( !memory ) {
+		self.disable();
+	}
+	return this;
+},
+// Is it locked?
+locked: function() {
+	return !stack;
+},
+
+// To know if the callbacks have already been called at least once
+fired: function() {
+	return !!fired;
+}
+```
+
 
