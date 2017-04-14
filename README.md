@@ -3912,6 +3912,7 @@ add: function() {
 		// 如果memory存在,则直接fire()
 		// memory在内部的fire函数中会被赋值
 		// 需要注意这个memory只有在fire函数调用之后才会继续执行
+		// 详见7.5 (三) memory直接执行fire
 		} else if ( memory ) {
 			firingStart = start;
 			fire( memory );
@@ -3955,7 +3956,7 @@ remove: function() {
 },
 ```
 
-### 7. 3 `$.Callback().has()`
+### 7. 4 `$.Callback().has()`
 
 ```
 // Check if a given callback is in the list.
@@ -3971,7 +3972,7 @@ has: function( fn ) {
 
 
 
-### 7. 4 `$.Callback().fire()/firewith()/fire()`
+### 7. 5 `$.Callback().fire()/firewith()/fire()`
 
 ```
 // [3030]
@@ -3996,7 +3997,8 @@ fireWith: function( context, args ) {
     // 如果options.once = true 则stack = false
     // 因此不会fire第二次了
     // 如果once = false  则stack = []
-    // 则可以继续第二次的fire
+    // 则可以继续第二次的fire 
+    // 详见(三),此时stack = false
 	if ( list && ( !fired || stack ) ) {
 		// 保存参数
 		args = args || [];
@@ -4049,6 +4051,7 @@ fire = function( data ) {
 				fire( stack.shift() );
 			}
 		//考虑 $.Callback('once memory')情况	
+		//详见(三)
 		} else if ( memory ) {
 			list = [];
 		} else {
@@ -4105,8 +4108,29 @@ $callback.add(fn1,fn2);
 $callback.fire('hello');
 ```
 
+(三)  多个参数一起使用
 
-### 7. 5 other API
+```
+var $callback = $.Callbacks('memory once');
+
+function fn1() {
+    console.log('fn1');
+}
+
+function fn2() {
+    console.log('fn2');
+}
+
+$callback.add(fn1);
+$callback.fire();                //因为memory参数,fire完毕后 list= []
+console.log($callback.has(fn1)); //false
+$callback.add(fn2);              //因为memory参数,此时直接fire了, list = []
+console.log($callback.has(fn1)); //false
+console.log($callback.has(fn2)); //false
+$callback.fire();                //因为once,此时不会fire了
+```
+
+### 7.6 other API
 
 ```
 // Remove all callbacks from the list
@@ -4143,4 +4167,36 @@ fired: function() {
 }
 ```
 
+
+## 8. 延迟对象
+
+延迟对象其实是对回调对象的再次封装.
+
+
+```
+var $callback = $.Callbacks('memory once');
+var $deferred = $.Deferred();
+
+function fn1() {
+    console.log('callback fn1');
+}
+
+function fn2() {
+    console.log('deferred fn2');
+}
+
+setTimeout(function() {
+    console.log('defer');   //defer
+    $callback.fire();       //callback fn1
+    $deferred.resolve();    //deferred fn2
+},1000);
+
+$callback.add(fn1);
+$deferred.done(fn2);       
+
+
+//add -> done
+//fire -> resolve
+//Callbacks -> Deferred
+```
 
