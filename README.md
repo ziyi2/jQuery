@@ -3704,7 +3704,7 @@ function fn2() {
 
 $callback.add(fn1,fn2);
 //$callback.add([fn1,fn2]) 数组也行
-$callback.fire(); //1 2 
+$callback.fire(); //1 2
 ```
 
 
@@ -3904,7 +3904,7 @@ add: function() {
 		})( arguments );
 		// Do we need to add the callbacks to the
 		// current firing batch?
-		// 
+		//
 		if ( firing ) {
 			firingLength = list.length;
 		// With memory, if we're not firing then
@@ -3979,7 +3979,7 @@ has: function( fn ) {
 // self = { fire: function() {}}
 // Call all the callbacks with the given arguments
 fire: function() {
-    // 传入参数arguments 
+    // 传入参数arguments
     // 详见(一)
     self.fireWith( this, arguments );
     // 链式调用
@@ -3987,17 +3987,17 @@ fire: function() {
 },
 
 // Call all callbacks with the given context and arguments
-// [3017]	
+// [3017]
 fireWith: function( context, args ) {
-    // 第一次fired = false 
+    // 第一次fired = false
     // !fired = true
     // 之后 fired = true 详见[2905] fired
-    // 因此要看stack 
+    // 因此要看stack
     // [2903] stack = !options.once && [],
     // 如果options.once = true 则stack = false
     // 因此不会fire第二次了
     // 如果once = false  则stack = []
-    // 则可以继续第二次的fire 
+    // 则可以继续第二次的fire
     // 详见(三),此时stack = false
 	if ( list && ( !fired || stack ) ) {
 		// 保存参数
@@ -4010,7 +4010,7 @@ fireWith: function( context, args ) {
 		//此时这个if就会执行了,stack默认是空数组 [].push(args)
 		if ( firing ) {
 			stack.push( args );
-		// 执行fire	
+		// 执行fire
 		} else {
 			fire( args );
 		}
@@ -4050,7 +4050,7 @@ fire = function( data ) {
 				//则继续执行fire
 				fire( stack.shift() );
 			}
-		//考虑 $.Callback('once memory')情况	
+		//考虑 $.Callback('once memory')情况
 		//详见(三)
 		} else if ( memory ) {
 			list = [];
@@ -4192,7 +4192,7 @@ setTimeout(function() {
 },1000);
 
 $callback.add(fn1);
-$deferred.done(fn2);       
+$deferred.done(fn2);
 
 
 //add -> done
@@ -4200,3 +4200,79 @@ $deferred.done(fn2);
 //Callbacks -> Deferred
 ```
 
+延迟对象的`resolve`和`reject`对应`once`和`memory`参数
+
+```
+
+//[ "resolve", "done", jQuery.Callbacks("once memory"), "resolved" ],
+//[ "reject", "fail", jQuery.Callbacks("once memory"), "rejected" ],
+//[ "notify", "progress", jQuery.Callbacks("memory") ]
+
+var $callback = $.Callbacks('memory once');
+var $deferred = $.Deferred();
+
+function fn1() {
+    console.log('callback fn1');
+}
+
+function fn2() {
+    console.log('deferred fn2');
+}
+
+
+setInterval(function() {
+    console.log('defer');   //defer N次
+    $callback.fire();       //callback fn1 只有一次 因为参数once
+    $deferred.resolve();    //deferred fn2 只有一次 因为参数once
+},1000);
+
+$callback.add(fn1);
+$deferred.done(fn2);
+```
+
+延迟对象的`notify`没有`once`参数
+
+```
+var $callback = $.Callbacks('memory once');
+var $deferred = $.Deferred();
+
+function fn1() {
+    console.log('callback fn1');
+}
+
+function fn2() {
+    console.log('deferred fn2');
+}
+
+
+setInterval(function() {
+    console.log('defer');   //defer N次
+    $callback.fire();       //callback fn1 只有一次 因为参数once
+    $deferred.notify();    //deferred fn2 N次 因为没有参数once
+},1000);
+
+$callback.add(fn1);
+$deferred.progress(fn2);
+```
+
+延迟对象的`notify`只对应`memory`参数
+
+```
+var $callback = $.Callbacks('memory once');
+var $deferred = $.Deferred();
+
+function fn1() {
+    console.log('callback fn1');
+}
+
+function fn2() {
+    console.log('deferred fn2');
+}
+
+$callback.add(fn1);
+$deferred.progress(fn2);
+
+$deferred.notify();      //deferred fn2
+$deferred.progress(fn2); //deferred fn2 因为memory 直接fire
+$deferred.progress(fn2); //deferred fn2 因为memory 直接fire
+```
