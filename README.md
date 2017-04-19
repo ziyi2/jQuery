@@ -1,4 +1,4 @@
-﻿
+
 ## 0.了解jQuery的这些属性和方法么？
 
 >注意:  本版本jQuery只支持IE9以上的浏览器
@@ -4170,6 +4170,104 @@ fired: function() {
 
 ## 8. 延迟对象
 
+>源码
+
+```
+//[3043]
+jQuery.extend({
+
+	Deferred: function( func ) {
+		var tuples = [
+				// action, add listener, listener list, final state
+				[ "resolve", "done", jQuery.Callbacks("once memory"), "resolved" ],
+				[ "reject", "fail", jQuery.Callbacks("once memory"), "rejected" ],
+				[ "notify", "progress", jQuery.Callbacks("memory") ]
+			],
+	
+			//详见(三)
+			state = "pending",
+			promise = {
+				state: function() {
+					return state;
+				},
+				always: function() {
+					deferred.done( arguments ).fail( arguments );
+					return this;
+				},
+				then: 
+
+				//详见(二)
+				//有参数的时候例如后面传入deffered
+				//则将promise对象扩展到deffered对象
+				//如果没有参数传入,则就返回promise对象本身
+				//例如$.Deffered().promise()
+				//返回的是promise对象而不是deffered对象
+				promise: function( obj ) {
+					return obj != null ? jQuery.extend( obj, promise ) : promise;
+				}
+			},
+			deferred = {};
+
+		// Keep pipe for back-compat
+		promise.pipe = promise.then;
+
+		// Add list-specific methods
+		jQuery.each( tuples, function( i, tuple ) {
+			var list = tuple[ 2 ],
+				stateString = tuple[ 3 ];
+
+			// promise[ done | fail | progress ] = list.add
+			// 因为memory所以直接add就fire了?
+			promise[ tuple[1] ] = list.add;
+
+			// Handle state
+			// notify是没有stateString
+			// 只有resolve和reject才会执行
+			if ( stateString ) {
+				// 因为memory这里先添加add?
+				list.add(function() {
+					// state = [ resolved | rejected ]
+					// 详见(三)
+					state = stateString;
+
+				// [ reject_list | resolve_list ].disable; progress_list.lock
+				}, tuples[ i ^ 1 ][ 2 ].disable, tuples[ 2 ][ 2 ].lock );
+			}
+
+			// deferred[ resolve | reject | notify ]
+			deferred[ tuple[0] ] = function() {
+				deferred[ tuple[0] + "With" ]( this === deferred ? promise : this, arguments );
+				return this;
+			};
+			deferred[ tuple[0] + "With" ] = list.fireWith;
+		});
+
+		// Make the deferred a promise
+		// 详见(二)
+		// 使deffered对象继承promise对象
+		promise.promise( deferred );
+
+		// Call given func if any
+		if ( func ) {
+			func.call( deferred, deferred );
+		}
+
+		// All done!
+		// 调用$.Defferd()返回的是deffered对象
+		return deferred;
+	},
+
+	// Deferred helper
+	// 延迟辅助函数
+	when: function() {
+	}
+});
+```
+
+>内容解析
+
+(一) 案例说明
+
 延迟对象其实是对回调对象的再次封装.
 
 
@@ -4275,4 +4373,198 @@ $deferred.progress(fn2);
 $deferred.notify();      //deferred fn2
 $deferred.progress(fn2); //deferred fn2 因为memory 直接fire
 $deferred.progress(fn2); //deferred fn2 因为memory 直接fire
+```
+
+
+(二) `promise`和`deffered`对象的区别
+
+- `promise`(使用`promise`对象不可以修改外部状态)
+ - `state`
+ - `always`
+ - `promise`
+ - `pipe`
+ - `then`
+ - `done`
+ - `fail`
+ - `progress`
+
+- `deffered`(多了三个状态,使用`deffered`可以修改状态)
+ - `resolve`
+ - `reject`
+ - `notify`
+ - `state`(这之后都是从`promise`对象继承而来)
+ - `always`
+ - `promise`
+ - `pipe`
+ - `then`
+ - `done`
+ - `fail`
+ - `progress`
+
+使用`deffered`对象可以在外部修改内部状态
+
+```
+function fn() {
+    var dfd = $.Deferred();
+
+    setTimeout(function() {
+        dfd.resolve();  //因为先reject所以状态被改变
+    },1000);
+
+    return dfd;
+}
+
+var dfd = fn();
+
+dfd.done(function() {
+    console.log('success');
+}).fail(function() {
+    console.log('fail');  //fail
+});
+
+dfd.reject();	//失败,说明在外面可以改变状态,因为用的是deffered对象
+```
+
+使用`promise`对象不可以在外部修改内部状态
+
+```
+function fn() {
+    var dfd = $.Deferred();
+
+    setTimeout(function() {
+        dfd.resolve();  //内部resolve状态不能被外部的reject修改
+    },1000);
+
+    return dfd.promise();
+}
+
+var dfd = fn();
+
+dfd.done(function() {
+    console.log('success');  //success
+}).fail(function() {
+    console.log('fail');
+});
+
+dfd.reject();   //Uncaught TypeError: dfd.reject is not a function, 因为promise对象没有reject属性
+```
+
+(三) `state`状态
+
+```
+function fn() {
+    var dfd = $.Deferred();
+
+    console.log(dfd.state());       //pending
+
+    setTimeout(function() {
+        dfd.resolve();
+        console.log(dfd.state());   //resolved
+    },1000);
+
+    return dfd.promise();
+}
+
+var dfd = fn();
+
+dfd.done(function() {
+    console.log('success');         //success
+}).fail(function() {
+    console.log('fail');
+});
+```
+
+(四) `always`
+
+```
+function fn() {
+    var dfd = $.Deferred();
+
+    //dfd.resolve();
+    dfd.reject();  //不管是什么状态,always都会触发
+
+    return dfd.promise();
+}
+
+var dfd = fn();
+
+dfd.always(function() {
+    console.log('111');
+})
+```
+
+
+(五)  `then`
+
+```
+function fn() {
+var dfd = $.Deferred();
+    //dfd.resolve();  //success
+    //dfd.reject();   //fail
+    dfd.notify('hi');     //progress
+    return dfd.promise();
+}
+
+var dfd = fn();
+
+dfd.then(
+	function() {
+	    alert('success');
+	},
+	function() {
+	    alert('fail');
+	},
+	function() {
+	    alert('progress');
+	    alert(arguments[0]);    //hi
+	}
+);
+```
+
+(五)  `pipe`
+
+ 管道的意思,需要注意和`then`方法其实进行了合并,其实用的不是特别多
+
+
+```
+var dfd = $.Deferred();
+
+	dfd.resolve('hi');
+	
+	//其实pipe和then是一样的,因此也是三个参数函数
+	//分别对应resolve reject notify
+	var newDfd = dfd.pipe(function() {
+	    return arguments[0] + 'pass then';
+	});
+	
+	newDfd.done(function() {
+	    console.log(arguments[0])   //hipass then
+})
+```
+
+(六) `when`
+
+- 所有的都是`resolve`才会`done`
+- 只要有一个`reject`就`done`
+
+```
+function fn1() {
+    var dfd = $.Deferred();
+
+    dfd.resolve();
+
+    return dfd;
+}
+
+function fn2() {
+    var dfd = $.Deferred();
+
+    dfd.resolve();
+    return dfd;
+}
+
+
+$.when(fn1(),fn2()).done(function() {
+    console.log("success"); //fn1和fn2都成功才会成功
+})
 ```
