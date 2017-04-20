@@ -4170,6 +4170,21 @@ fired: function() {
 
 ## 8. 延迟对象
 
+和**5. 工具方法**类似,都是在`JQuery`对象上添加新的属性方法
+
+```
+jQuery.extend({
+	Deferred: function(){},  # 延迟对象
+	when:function(){}        # 延迟对象辅助方法
+})
+```
+
+
+
+## 8.1 `$.Deffered()`
+
+
+
 >源码
 
 ```
@@ -4194,7 +4209,49 @@ jQuery.extend({
 					deferred.done( arguments ).fail( arguments );
 					return this;
 				},
-				then: 
+				then: function( /* fnDone, fnFail, fnProgress */ ) {
+					// then(function(){},function(){},function(){})
+					// 所以arguments是的属性是三个函数
+					// 利用fns保存arguments参数
+					var fns = arguments;
+					// return jQuery.Deffered(fn).promise()
+					// 根据if ( func ) {func.call( deferred, deferred )}
+					// 因此newDefer就是deffered对象
+					// 且this指向了deffered对象
+					// 并立马执行了func
+					return jQuery.Deferred(function( newDefer ) {
+						jQuery.each( tuples, function( i, tuple ) {
+							// action : resolve reject notify
+							var action = tuple[ 0 ],
+								// 获取then()中对应三种状态的函数
+								fn = jQuery.isFunction( fns[ i ] ) && fns[ i ];
+							// deferred[ done | fail | progress ] for forwarding actions to newDefer
+							// deffered.done(fn) deffered.fail(fn) deffered.progress(fn)
+							deferred[ tuple[1] ](function() {
+								// 当resolve/reject/notify执行的时候
+								// done/fail/progress就会触发,因此就可以执行then中对应的函数
+								var returned = fn && fn.apply( this, arguments );
+								// 如果then(function(){return})
+								// 匿名函数中有返回值
+								// 如果返回值是deffered对象
+								// 详见(五)
+								if ( returned && jQuery.isFunction( returned.promise ) ) {
+									returned.promise()
+										.done( newDefer.resolve )
+										.fail( newDefer.reject )
+										.progress( newDefer.notify );
+								} else {
+									//详见(五)
+									//如果返回值不是deffered对象
+									//直接fireWith 可以触发done函数
+									//需要注意的是newDefer和返回值dfd是怎么建立关系的,就是通过闭包的形式,将之前保留的deffered对象再次传入$.Deffered(fun)的fun中传入
+									newDefer[ action + "With" ]( this === promise ? newDefer.promise() : this, fn ? [ returned ] : arguments );
+								}
+							});
+						});
+						fns = null;
+					}).promise();
+				},
 
 				//详见(二)
 				//有参数的时候例如后面传入deffered
@@ -4206,13 +4263,25 @@ jQuery.extend({
 					return obj != null ? jQuery.extend( obj, promise ) : promise;
 				}
 			},
+			
+			//注意闭包形式,因为外部调用$.Deffered()会一直保持着 引用
+			//所以这个对象暂时是不会释放的
+			//这个对象有很多属性是函数
+			//相当于返回了这些函数,因此返回函数内部的嵌套函数就属于闭包形式
 			deferred = {};
 
 		// Keep pipe for back-compat
+		// 两个函数每种形式上是通用的
 		promise.pipe = promise.then;
 
 		// Add list-specific methods
+		// 其实这里就相当于添加add和fire函数
+		// 需要注意的是和tuples数组是对应起来的
+		// 例如done对应 add
+		// 那么resolve就对应 fireWith
 		jQuery.each( tuples, function( i, tuple ) {
+			// list 就是$.Callback()
+			// 每一种状态就有一个Callback
 			var list = tuple[ 2 ],
 				stateString = tuple[ 3 ];
 
@@ -4225,6 +4294,8 @@ jQuery.extend({
 			// 只有resolve和reject才会执行
 			if ( stateString ) {
 				// 因为memory这里先添加add?
+				// 这里状态是不能被改变的
+				// 在执行任何一种状态的时候另外的状态都会被锁定
 				list.add(function() {
 					// state = [ resolved | rejected ]
 					// 详见(三)
@@ -4235,10 +4306,15 @@ jQuery.extend({
 			}
 
 			// deferred[ resolve | reject | notify ]
+			// 需要注意这里后执行
+			// 这里只有在外部调用 resolve reject等函数时才会执行
+			// 后面的先执行所以deferred[ tuple[0] + "With" ]存在
 			deferred[ tuple[0] ] = function() {
+				// resoveWith rejectWith notifyWith
 				deferred[ tuple[0] + "With" ]( this === deferred ? promise : this, arguments );
 				return this;
 			};
+			// 这里先执行
 			deferred[ tuple[0] + "With" ] = list.fireWith;
 		});
 
@@ -4248,18 +4324,15 @@ jQuery.extend({
 		promise.promise( deferred );
 
 		// Call given func if any
+		// 这一这个可以在外部使用,内部详见then方法
 		if ( func ) {
 			func.call( deferred, deferred );
 		}
 
 		// All done!
 		// 调用$.Defferd()返回的是deffered对象
+		// 闭包形式
 		return deferred;
-	},
-
-	// Deferred helper
-	// 延迟辅助函数
-	when: function() {
 	}
 });
 ```
@@ -4390,8 +4463,11 @@ $deferred.progress(fn2); //deferred fn2 因为memory 直接fire
 
 - `deffered`(多了三个状态,使用`deffered`可以修改状态)
  - `resolve`
+ - `resolveWith`
  - `reject`
+ - `rejectWith`
  - `notify`
+ - `notifyWith`
  - `state`(这之后都是从`promise`对象继承而来)
  - `always`
  - `promise`
@@ -4521,6 +4597,55 @@ dfd.then(
 );
 ```
 
+ `then`的函数如果有返回值
+
+```
+function fn1() {
+    var dfd = $.Deferred();
+
+    dfd.resolve();
+
+    return dfd;
+}
+
+
+var dfd = fn1();
+
+dfd = dfd.then(function(){
+	 return 'then return value'; //如果返回值不是deffered或promise对象,则在源代码内部直接fireWith,会触发下面的done函数
+});
+
+dfd.done(function() {
+	console.log(arguments[0]); //then return value
+});
+```
+
+ `then`/`pipe(管道)`的函数如果返回值是`deffered`对象
+
+```
+function fn1() {
+    var dfd = $.Deferred();
+
+    dfd.resolve();
+
+    return dfd;
+}
+
+
+var dfd = fn1();
+
+dfd = dfd.then(function(){
+    return dfd; //如果返回值是deffered对象
+});
+
+dfd.done(function() {
+   console.log(arguments[0]);
+});
+```
+
+
+
+
 (五)  `pipe`
 
  管道的意思,需要注意和`then`方法其实进行了合并,其实用的不是特别多
@@ -4568,3 +4693,155 @@ $.when(fn1(),fn2()).done(function() {
     console.log("success"); //fn1和fn2都成功才会成功
 })
 ```
+
+
+## 8.2 `$.when()`
+
+>源码
+
+```
+jQuery.extend({
+// Deferred helper
+	when: function( subordinate /* , ..., subordinateN */ ) {
+		var i = 0,
+			//将arguments转化为数组
+			resolveValues = core_slice.call( arguments ),
+			length = resolveValues.length,
+
+			// the count of uncompleted subordinates
+			// 如果只有一个参数,会判断返回值是否是延迟对象,如果是则返回length = 1
+			// 多参数remaining是length
+			remaining = length !== 1 || ( subordinate && jQuery.isFunction( subordinate.promise ) ) ? length : 0,
+
+			// the master Deferred. If resolveValues consist of only a single Deferred, just use that.
+			// 如果只有一个参数 remaining = 1,如果返回值是延迟对象,则deffered是when中的fn返回的延迟对象
+			// 如果返回值不是deffered对象,则执行后面的$.Deffered
+			// 
+			deferred = remaining === 1 ? subordinate : jQuery.Deferred(),
+
+			// Update function for both resolve and progress values
+			updateFunc = function( i, contexts, values ) {
+				return function( value ) {
+					contexts[ i ] = this;
+					values[ i ] = arguments.length > 1 ? core_slice.call( arguments ) : value;
+					if( values === progressValues ) {
+						deferred.notifyWith( contexts, values );
+					} else if ( !( --remaining ) ) {
+						deferred.resolveWith( contexts, values );
+					}
+				};
+			},
+
+			progressValues, progressContexts, resolveContexts;
+
+		// add listeners to Deferred subordinates; treat others as resolved
+		if ( length > 1 ) {
+			progressValues = new Array( length );
+			progressContexts = new Array( length );
+			resolveContexts = new Array( length );
+			for ( ; i < length; i++ ) {
+				if ( resolveValues[ i ] && jQuery.isFunction( resolveValues[ i ].promise ) ) {
+					resolveValues[ i ].promise()
+						.done( updateFunc( i, resolveContexts, resolveValues ) )
+						.fail( deferred.reject )
+						.progress( updateFunc( i, progressContexts, progressValues ) );
+				} else {
+					--remaining;
+				}
+			}
+		}
+
+		// if we're not waiting on anything, resolve the master
+		// 如果没有参数需要执行 $.when().done()
+		// 如果是一个参数且返回值是延迟对象,这里不执行
+		// 如果是一个参数返回值不是延迟对象,这里也执行
+		if ( !remaining ) {
+			deferred.resolveWith( resolveContexts, resolveValues );
+		}
+
+		// 如果是一个参数fn,则返回的是这个参数的延迟对象对应的promise() 
+		return deferred.promise();
+	}
+});	
+```
+
+
+>内容解析
+
+- 所有的都是`resolve`才会`done`
+- 只要有一个`reject`就`fail`
+
+```
+function fn1() {
+    var dfd = $.Deferred();
+    dfd.resolve();
+    return dfd;  
+}
+function fn2() {
+    var dfd = $.Deferred();
+    dfd.reject();
+    return dfd;
+}
+//when中的fn参数必须返回延迟对象
+//如果不是返回延迟对象,则会跳过这个fn
+//$.when().done(function)	会执行成功
+//$.when(arg1,arg2).done() 可以传参数处理
+//$.when(fn1(),'111').done(function) 仍然会执行成功
+$.when(fn1(),fn2()).done(function() {
+    console.log("success"); //fn1和fn2都成功才会成功
+}).fail(function(){
+	console.log("fail");    //fail
+});
+
+```
+
+`when`传参情况
+
+```
+function fn1() {
+    var dfd = $.Deferred();
+    dfd.resolve();
+    return dfd;
+}
+
+function fn2() {
+    var dfd = $.Deferred();
+    dfd.resolve();
+    return dfd;
+}
+
+
+function fn() {
+    var dfd = $.Deferred();
+    dfd.resolve();
+}
+
+//1.无参情况
+//无参数的情况下在when中新建了一个deffered对象
+//并返回deffered.promise()
+//在when内部触发了新建deffered对象的fireWith函数
+//因此done对象可以执行
+$.when().done(function() {
+    console.log("success");
+});
+
+//2.只有一个参数,不返回延迟对象
+//和第一种情况类似
+$.when(fn()).done(function() {
+    console.log("success");
+});
+
+//3.只有一个参数的情况,返回延迟对象
+//没有在when中新建deffered对象,而是使用fn1传入的deffered对象进行了处理
+//done函数也是和fn1返回的dfd对象对应
+$.when(fn1()).done(function() {
+    console.log("success");
+});
+
+//4.多个参数的情况
+//使用计数器进行处理
+$.when(fn1(),fn2()).done(function() {
+    console.log("success");
+});
+```
+
