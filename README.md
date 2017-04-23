@@ -314,7 +314,7 @@ jQuery.fn.init.prototype = jQuery.fn;
 >内容解析
 
 (一)、普通面向对象的编程方法
-```
+``` javascript
 function Obj() {}
 Obj.prototype.init = function(){
 };
@@ -657,7 +657,7 @@ init: function( selector, context, rootjQuery ) {
 
 (一)、构造函数返回值问题
 
-```
+``` javascript
 //构造函数一般不需要返回值
 function Obj() {
 	this.a = 1;
@@ -697,7 +697,7 @@ alert(o2.a);	//3
  alert(o3.a);	//1
 ```
 
-```
+``` javascript
 function a() {
     this.attr = 0;
     this.func = function() {
@@ -1003,7 +1003,7 @@ Array.prototype.slice = function(begin, end) {
 
 
 >源码
-```
+``` javascript
 //[206]
 // Get the Nth element in the matched element set OR
 // Get the whole matched element set as a clean array
@@ -2010,7 +2010,7 @@ console.log({}.toString.call({}));					//[object Object]
 需要注意使用`instance of`的方法进行类型检测需要考虑跨`iframe`子框架的检测问题
 
 
-```
+``` javascript
 //a.js
 function Test() {
     this.name = 'ziyi2';
@@ -2200,7 +2200,7 @@ console.log(Object.prototype.isPrototypeOf(data));				//true
 `isPrototypeOf`属性是`Object.prototype`的自有属性,其他对象所持有的该属性都是继承的。
 
 
-```
+``` javascript
 //是否是原型对象的属性和方法
 function hasPrototypeProperty(obj,key) {
     //1.如果是自己的属性返回false,表明不是原型对象的属性
@@ -2223,7 +2223,7 @@ console.log(hasPrototypeProperty(Date,'isPrototypeOf'));			//true
 
 >源码
 
-```
+``` javascript
 isEmptyObject: function( obj ) {
 	var name;
 	//可以遍历原型对象的属性和方法
@@ -2243,7 +2243,7 @@ isEmptyObject: function( obj ) {
 
 >源码
 
-```
+``` javascript
 //[468]
 error: function( msg ) {
 	throw new Error( msg );
@@ -2256,7 +2256,7 @@ error: function( msg ) {
 
 >源码
 
-```
+``` javascript
 // data: string of html
 	// context (optional): If specified, the fragment will be created in this context, defaults to document
 	// keepScripts (optional): If true, will include scripts passed in the html string
@@ -2318,7 +2318,7 @@ document.body.appendChild($.parseHTML('<li>1</li><li>1</li>')[1]);
 
 >源码
 
-```
+``` javascript
 parseJSON: JSON.parse,
 ```
 
@@ -2327,7 +2327,7 @@ parseJSON: JSON.parse,
 
 >源码
 
-```
+``` javascript
 // Cross-browser xml parsing
 parseXML: function( data ) {
 	var xml, tmp;
@@ -2355,7 +2355,7 @@ parseXML: function( data ) {
 
 >源码
 
-```
+``` javascript
 noop: function() {},
 ```
 
@@ -2365,7 +2365,7 @@ noop: function() {},
 
 >源码
 
-```
+``` javascript
 // Evaluates a script in a global context
 globalEval: function( code ) {
 	//详见(一)
@@ -2400,7 +2400,7 @@ globalEval: function( code ) {
 - 直接调用`eval`,总是在调用它的上下文作用域内执行
 - 其他的间接调用则使用全局对象作为其上下文作用域
 
-```
+``` javascript
 var geval = eval; //使用别名调用eval将是全局eval,这算是间接调用
 var x = 'x global';
 var y = 'y global';
@@ -2421,7 +2421,7 @@ console.log(g(),y);//y local              y global changed
 
 (二)、 严格模式
 
-```
+``` javascript
 function fn(){
     eval('var i = 0');
     console.log(i);     //0
@@ -2444,7 +2444,7 @@ f();
 
 >源码
 
-```
+``` javascript
 
 //[81]
 rmsPrefix = /^-ms-/,
@@ -2479,7 +2479,7 @@ camelCase: function( string ) {
 
 >源码
 
-```
+``` javascript
 nodeName: function( elem, name ) {
 	return elem.nodeName && elem.nodeName.toLowerCase() === name.toLowerCase();
 },
@@ -2488,7 +2488,7 @@ nodeName: function( elem, name ) {
 
 >内容解析
 
-```
+``` javascript
 console.log($.nodeName($('div')[0],'DIV')); //true
 ```
 
@@ -2505,7 +2505,7 @@ console.log($.nodeName($('div')[0],'DIV')); //true
 
 >源码
 
-```
+``` javascript
 // args is for internal usage only
 each: function( obj, callback, args ) {
 	var value,
@@ -2573,7 +2573,7 @@ each: function( obj, callback, args ) {
 
 (一)、参数解析
 
-```
+``` javascript
 var arr = [1,2,3];
 
 $.each(arr,function(index,value) {
@@ -2585,7 +2585,7 @@ $.each(arr,function(index,value) {
 (二)、`this`指向
 
 
-```
+``` javascript
 var arr = [1,2,3];
 
 $.each(arr,function(index,value) {
@@ -2596,7 +2596,7 @@ $.each(arr,function(index,value) {
 
 (三)、终止遍历
 
-```
+``` javascript
 var arr = [1,2,3];
 
 $.each(arr,function(index,value) {
@@ -2610,7 +2610,7 @@ $.each(arr,function(index,value) {
 
 >源码
 
-```
+``` javascript
 trim: function( text ) {
 	return text == null ? "" : core_trim.call( text );
 },
@@ -2622,7 +2622,7 @@ trim: function( text ) {
 
 >源码
 
-```
+``` javascript
 // results is for internal usage only
 makeArray: function( arr, results ) {
 	//第二参数可能不存在,那么就是空数组
@@ -2655,7 +2655,7 @@ makeArray: function( arr, results ) {
 
 - 转换成包装对象
 
-```
+``` javascript
 var str = '123'
 console.log(Object(str));
 //String {0: "1", 1: "2", 2: "3", length: 3, [[PrimitiveValue]]:
@@ -2664,7 +2664,7 @@ console.log($.makeArray(str));  //['123']
 
 (二) `[].push()`
 
-```
+``` javascript
 var num = 123;
 console.log(Object(num));   //Number(123);
 
@@ -2694,7 +2694,7 @@ console.log($.makeArray([1,2,3],[4,5,6])); //1,2,3,4,5,6
 
 >源码
 
-```
+``` javascript
 inArray: function( elem, arr, i ) {
 	//i是indexOf的第二个参数,搜索的起始位置
 	//详见(一)
@@ -2706,7 +2706,7 @@ inArray: function( elem, arr, i ) {
 
 (一) `indexOf()`
 
-```
+``` javascript
 //字符串索引
 console.log('12345'.indexOf('3',4)); //-1
 console.log('12345'.indexOf('3',1)); //2
@@ -2729,7 +2729,7 @@ console.log($.inArray(2,[1,2,3,4,5]));  //1
 
 - 针对情况`[] {}`, `{}`可能有`length`也可能没有`length`
 
-```
+``` javascript
 merge: function( first, second ) {
 	var l = second.length,
 		i = first.length,
@@ -2765,7 +2765,7 @@ merge: function( first, second ) {
 
 >源码
 
-```
+``` javascript
 grep: function( elems, callback, inv ) {
 	var retVal,
 		ret = [],
@@ -2791,7 +2791,7 @@ grep: function( elems, callback, inv ) {
 >内容解析
 
 
-```
+``` javascript
 var arr = [1,2,3,4];
 
 var f = function(value,index) {
@@ -2815,7 +2815,7 @@ console.log($.grep(arr,f1,true));   //[1,2]
 - 改变数组`value`,返回新数组
 
 >源码
-```
+``` javascript
 // arg is for internal usage only
 map: function( elems, callback, arg ) {
 	var value,
@@ -2858,7 +2858,7 @@ map: function( elems, callback, arg ) {
 
 >内容解析
 
-```
+``` javascript
 var arr = [1,2,3];
 
 var newArr = $.map(arr,function(value,index) {
@@ -2885,7 +2885,7 @@ guid: 1,
 
 > 源码
 
-```
+``` javascript
 // Bind a function to a context, optionally partially applying any
 // arguments.
 proxy: function( fn, context ) {
@@ -2939,7 +2939,7 @@ proxy: function( fn, context ) {
 
 (一) `$.proxy(obj, 'fn')`
 
-```
+``` javascript
 var obj = {
   show: function() {
       console.log(this);
@@ -2952,7 +2952,7 @@ $(document).click($.proxy(obj,'show'));     //改变了绑定事件函数中的t
 
 (二) 转数组
 
-```
+``` javascript
   var json = {
       0: 0,
       1: 1,
@@ -2968,7 +2968,7 @@ $(document).click($.proxy(obj,'show'));     //改变了绑定事件函数中的t
 (三) `$.proxy()`参数详见
 
 
-```
+``` javascript
 var obj = {
 	show: function(a,b) {
 	      console.log(a);
@@ -2987,7 +2987,7 @@ $.proxy(obj.show,obj)(1,2);  //全都是一样的
 (四) 事件绑定
 
 
-```
+``` javascript
 function show() {
   console.log(this);
 }
@@ -3003,7 +3003,7 @@ $(document).off()       //取消绑定
 
 需要注意的是一般情况下, 想要取消绑定事件,需要调用同一个绑定事件的引用,例如以下取消绑定事件是会失败的,所以就有了唯一标识符`guid`,因为使用`$.proxy()`很容易改变绑定的事件函数,不使用唯一标识符的话,就不能取消绑定了
 
-```
+``` javascript
 //绑定事件
 document.addEventListener('click',function(){
     alert(1);
@@ -3040,7 +3040,7 @@ function show() {
 
 >源码
 
-```
+``` javascript
 // Multifunctional method to get and set values of a collection
 // The value/s can optionally be executed if it's a function
 // key -> witdh
@@ -3116,7 +3116,7 @@ access: function( elems, fn, key, value, chainable, emptyGet, raw ) {
 
 >内容解析
 
-```
+``` javascript
  //$().css() \ $().val() \ $().attr()等方法都调用了$.access()工具方法
  //$.access() 多功能值操作(内部)
 
@@ -3137,7 +3137,7 @@ access: function( elems, fn, key, value, chainable, emptyGet, raw ) {
 - 获取时间
 
 
-```
+``` javascript
 //和(new Date()).getTime()功能类似
 //ECMAScript 5方法
 now: Date.now,
@@ -3147,7 +3147,7 @@ now: Date.now,
 
 - css属性交换
 
-```
+``` javascript
 // A method for quickly swapping in/out CSS properties to get correct calculations.
 // Note: this method belongs to the css module but it's needed here for the support module.
 // If support gets modularized, this method should be moved back to the css module.
@@ -3182,7 +3182,7 @@ swap: function( elem, options, callback, args ) {
 
 - 交换样式有时候就如例子这么有用
 
-```
+``` javascript
 var $div = $('#div1')
    , divDom = $div.get(0);
 
@@ -3211,7 +3211,7 @@ divDom.style.cssText = oldStyle;
 
 >源码
 
-```
+``` javascript
 (function(window,undefined) {
 
     //[849]
@@ -3243,7 +3243,7 @@ divDom.style.cssText = oldStyle;
 
 内容解析:
 
-```
+``` javascript
 isArraylike([]);
 isArraylike({length:0});        //true
 isArraylike({a:1,length:1});    //false, 0 in obj不存在
@@ -3260,7 +3260,7 @@ isArraylike({0:'a',length:1})   //true
 
 >源码
 
-```
+``` javascript
 //[2859]
 /*
  * Create a callback list using the following parameters:
@@ -3338,7 +3338,7 @@ jQuery.Callbacks = function( options ) {
 - 创建闭包的常见方式就是在一个函数内部创建另一个函数
 
 
-```
+``` javascript
 function campareFunction(propertyName){
    return function(obj1,obj2){ //一个匿名的内部函数
        var value1 = obj1[propertyName];
@@ -3361,7 +3361,7 @@ function campareFunction(propertyName){
 
 - 作用域链: 当某个函数被调用时会创建一个执行环境及相应的作用域链。然后使用arguments和其他命名参数的值来初始化函数的活动对象。但是在作用域链中，外部函数的活动对象始终处于第二位,外部函数的外部函数的活动对象处于第三位.....直至作为作用域链终点的全局执行环境
 
-```
+``` javascript
 function compare1(value1,value2){
     if(value1 < value2){
         return -1;
@@ -3467,7 +3467,7 @@ compare  = null;//通知垃圾回收例程将其清除，随着匿名函数的�
 
 深入理解闭包
 
-```
+``` javascript
 function creatFunction(){
     var result = new  Array();
 
@@ -3506,7 +3506,7 @@ for(var i=0; i<10; i++){
 
 闭包中的`this`对象
 
-```
+``` javascript
 //匿名函数的执行环境具有全局性，因此this对象通常指向window
 var f = function(){
     return function(){
@@ -3559,7 +3559,7 @@ write(obj.getAgeFun()()); //14
 
 (二)  $.Callback的闭包架构
 
-```
+``` javascript
 (function(window) {
     ziyi2 = {};
 
@@ -3612,7 +3612,7 @@ info = null;           //释放所有内存
 (三) 使用案例解析
 
 按顺序触发想要执行的函数
-```
+``` javascript
 function fn1() {
     console.log('111');
 }
@@ -3633,7 +3633,7 @@ callbacks.fire(); //111 222
 
 即使不在同一个作用域,也可以按顺序触发想要执行的函数
 
-```
+``` javascript
 var callbacks = $.Callbacks();
 
 function fn1() {
@@ -3662,7 +3662,7 @@ fn3();            //fn3 is not defined(…) 默认外部不能执行
 ```
 
 也可以根据条件移除不需要执行的回调函数
-```
+``` javascript
 var callbacks = $.Callbacks();
 
  function fn1() {
@@ -3692,7 +3692,7 @@ var callbacks = $.Callbacks();
 
 同时`add`多个回调函数
 
-```
+``` javascript
 $callback = $.Callbacks();
 function fn1() {
     console.log(1);
@@ -3721,7 +3721,7 @@ $callback.fire(); //1 2
 
 `once`
 
-```
+``` javascript
 //没有参数
 var callbacks = $.Callbacks();
 
@@ -3759,7 +3759,7 @@ callbacks.fire(); //这个不会执行
 
 `memory`
 
-```
+``` javascript
 //没有参数
 var callbacks = $.Callbacks();
 
@@ -3793,7 +3793,7 @@ callbacks.add(fn2); //222 在add的同时fire了
 
 `unique`
 
-```
+``` javascript
 var callbacks = $.Callbacks("unique");
 
 function fn1() {
@@ -3812,7 +3812,7 @@ callbacks.fire();   //111 list数组中只有一个需要fire的回调函数
 ```
 
 `stopOnFalse`
-```
+``` javascript
 //有参数
 var callbacks = $.Callbacks('stopOnFalse');
 
@@ -3836,7 +3836,7 @@ callbacks.fire();  //111 遇到false之后break出了list,后面的回调函数�
 ### 7. 1 `options`
 
 >源码
-```
+``` javascript
 // [2846]
 // String to Object options format cache
 var optionsCache = {};
@@ -3874,7 +3874,7 @@ jQuery.extend( {}, options );
 
 >源码
 
-```
+``` javascript
 // Add a callback or a collection of callbacks to the list
 add: function() {
     // 第一次进入的时候list = []
@@ -3927,7 +3927,7 @@ add: function() {
 ### 7. 3 `$.Callback().remove()`
 
 
-```
+``` javascript
 // Remove a callback from the list
 remove: function() {
 	if ( list ) {
@@ -3958,7 +3958,7 @@ remove: function() {
 
 ### 7. 4 `$.Callback().has()`
 
-```
+``` javascript
 // Check if a given callback is in the list.
 // If no argument is given, return whether or not list has callbacks attached.
 has: function( fn ) {
@@ -3974,7 +3974,7 @@ has: function( fn ) {
 
 ### 7. 5 `$.Callback().fire()/firewith()/fire()`
 
-```
+``` javascript
 // [3030]
 // self = { fire: function() {}}
 // Call all the callbacks with the given arguments
@@ -4066,7 +4066,7 @@ fire = function( data ) {
 
 (一)  传入回调函数的参数
 
-```
+``` javascript
 $callback = $.Callbacks();
 function fn1(n) {
     console.log(n);
@@ -4088,7 +4088,7 @@ $callback.remove(fn1,fn2).add(fn1,fn2).fire('hello1');
 
 
 
-```
+``` javascript
 $callback = $.Callbacks();
 function fn1(n) {
 
@@ -4110,7 +4110,7 @@ $callback.fire('hello');
 
 (三)  多个参数一起使用
 
-```
+``` javascript
 var $callback = $.Callbacks('memory once');
 
 function fn1() {
@@ -4132,7 +4132,7 @@ $callback.fire();                //因为once,此时不会fire了
 
 ### 7.6 other API
 
-```
+``` javascript
 // Remove all callbacks from the list
 empty: function() {
 	list = [];
@@ -4172,7 +4172,7 @@ fired: function() {
 
 和**5. 工具方法**类似,都是在`JQuery`对象上添加新的属性方法
 
-```
+``` javascript
 jQuery.extend({
 	Deferred: function(){},  # 延迟对象
 	when:function(){}        # 延迟对象辅助方法
@@ -4187,7 +4187,7 @@ jQuery.extend({
 
 >源码
 
-```
+``` javascript
 //[3043]
 jQuery.extend({
 
@@ -4344,7 +4344,7 @@ jQuery.extend({
 延迟对象其实是对回调对象的再次封装.
 
 
-```
+``` javascript
 var $callback = $.Callbacks('memory once');
 var $deferred = $.Deferred();
 
@@ -4373,7 +4373,7 @@ $deferred.done(fn2);
 
 延迟对象的`resolve`和`reject`对应`once`和`memory`参数
 
-```
+``` javascript
 
 //[ "resolve", "done", jQuery.Callbacks("once memory"), "resolved" ],
 //[ "reject", "fail", jQuery.Callbacks("once memory"), "rejected" ],
@@ -4403,7 +4403,7 @@ $deferred.done(fn2);
 
 延迟对象的`notify`没有`once`参数
 
-```
+``` javascript
 var $callback = $.Callbacks('memory once');
 var $deferred = $.Deferred();
 
@@ -4428,7 +4428,7 @@ $deferred.progress(fn2);
 
 延迟对象的`notify`只对应`memory`参数
 
-```
+``` javascript
 var $callback = $.Callbacks('memory once');
 var $deferred = $.Deferred();
 
@@ -4479,7 +4479,7 @@ $deferred.progress(fn2); //deferred fn2 因为memory 直接fire
 
 使用`deffered`对象可以在外部修改内部状态
 
-```
+``` javascript
 function fn() {
     var dfd = $.Deferred();
 
@@ -4503,7 +4503,7 @@ dfd.reject();	//失败,说明在外面可以改变状态,因为用的是deffered
 
 使用`promise`对象不可以在外部修改内部状态
 
-```
+``` javascript
 function fn() {
     var dfd = $.Deferred();
 
@@ -4527,7 +4527,7 @@ dfd.reject();   //Uncaught TypeError: dfd.reject is not a function, 因为promis
 
 (三) `state`状态
 
-```
+``` javascript
 function fn() {
     var dfd = $.Deferred();
 
@@ -4552,7 +4552,7 @@ dfd.done(function() {
 
 (四) `always`
 
-```
+``` javascript
 function fn() {
     var dfd = $.Deferred();
 
@@ -4572,7 +4572,7 @@ dfd.always(function() {
 
 (五)  `then`
 
-```
+``` javascript
 function fn() {
 var dfd = $.Deferred();
     //dfd.resolve();  //success
@@ -4599,7 +4599,7 @@ dfd.then(
 
  `then`的函数如果有返回值
 
-```
+``` javascript
 function fn1() {
     var dfd = $.Deferred();
 
@@ -4622,7 +4622,7 @@ dfd.done(function() {
 
  `then`/`pipe(管道)`的函数如果返回值是`deffered`对象
 
-```
+``` javascript
 function fn1() {
     var dfd = $.Deferred();
 
@@ -4651,7 +4651,7 @@ dfd.done(function() {
  管道的意思,需要注意和`then`方法其实进行了合并,其实用的不是特别多
 
 
-```
+``` javascript
 var dfd = $.Deferred();
 
 	dfd.resolve('hi');
@@ -4672,7 +4672,7 @@ var dfd = $.Deferred();
 - 所有的都是`resolve`才会`done`
 - 只要有一个`reject`就`done`
 
-```
+``` javascript
 function fn1() {
     var dfd = $.Deferred();
 
@@ -4699,7 +4699,7 @@ $.when(fn1(),fn2()).done(function() {
 
 >源码
 
-```
+``` javascript
 jQuery.extend({
 // Deferred helper
 	when: function( subordinate /* , ..., subordinateN */ ) {
@@ -4769,9 +4769,9 @@ jQuery.extend({
 >内容解析
 
 - 所有的都是`resolve`才会`done`
-- 只要有一个`reject`就`fail`
+- 只要有一个`reject`就`done`
 
-```
+``` javascript
 function fn1() {
     var dfd = $.Deferred();
     dfd.resolve();
@@ -4797,7 +4797,7 @@ $.when(fn1(),fn2()).done(function() {
 
 `when`传参情况
 
-```
+``` javascript
 function fn1() {
     var dfd = $.Deferred();
     dfd.resolve();
@@ -4843,5 +4843,583 @@ $.when(fn1()).done(function() {
 $.when(fn1(),fn2()).done(function() {
     console.log("success");
 });
+```
+
+
+## 9. 功能检测
+
+- 检测(不是解决,解决是`hooks`)内部源码的兼容性
+- 工具方法
+- 
+
+
+>源码
+
+``` javascript
+//[3184]
+//工具方法 匿名函数自执行
+jQuery.support = (function( support ) {
+	
+	//1. 动态创建元素进行功能检测
+	var input = document.createElement("input"),
+			fragment = document.createDocumentFragment(),
+			div = document.createElement("div"),
+			select = document.createElement("select"),
+			opt = select.appendChild( document.createElement("option") );
+	
+	// Finish early in limited environments
+	// 这基本没什么必要
+	if ( !input.type ) {
+		return support;
+	}
+
+	// 改成复选框进行测试
+	input.type = "checkbox";
+
+	// Support: Safari 5.1, iOS 5.1, Android 4.x, Android 2.3
+	// Check the default checkbox/radio value ("" on old WebKit; "on" elsewhere)
+	// 老版本下是"",其他都是"on"
+	// 解决兼容性问题就是将""改成"on" 
+	support.checkOn = input.value !== "";
+	
+	// Must access the parent to make an option select properly
+	// Support: IE9, IE10
+	// select元素 选项时检测第一项是不是选中的
+	support.optSelected = opt.selected;
+
+	// Will be defined later
+	// 等页面加载完才能做判断,因为要进行DOM节点的操作
+	support.reliableMarginRight = true;
+	support.boxSizingReliable = true;
+	support.pixelPosition = false;
+
+	// Make sure checked status is properly cloned
+	// Support: IE9, IE10
+	// IE9 IE10下没有选中 克隆出来的checkbox没有被选中(大部分浏览器可以被选中)
+	input.checked = true;
+	support.noCloneChecked = input.cloneNode( true ).checked;
+
+	// Make sure that the options inside disabled selects aren't marked as disabled
+	// (WebKit marks them as disabled)
+	// 下拉菜单被禁止,子项一般不会被禁止
+	select.disabled = true;
+	support.optDisabled = !opt.disabled;
+
+	// Check if an input maintains its value after becoming a radio
+	// Support: IE9, IE10
+	// 重新创建input
+	input = document.createElement("input");
+	// 先去设置value值(注意顺序)
+	input.value = "t";
+	// 再设置radio
+	input.type = "radio";
+	// IE9 10 11下都是false
+	support.radioValue = input.value === "t";
+
+	// #11217 - WebKit loses check when the name is after the checked attribute
+	// 
+	input.setAttribute( "checked", "t" );
+	input.setAttribute( "name", "t" );
+
+	fragment.appendChild( input );
+
+	// Support: Safari 5.1, Android 4.x, Android 2.3
+	// old WebKit doesn't clone checked state correctly in fragments
+	// 老版本下克隆文档碎片不能返回设置的checked属性
+	support.checkClone = fragment.cloneNode( true ).cloneNode( true ).lastChild.checked;
+
+	// Support: Firefox, Chrome, Safari
+	// Beware of CSP restrictions (https://developer.mozilla.org/en/Security/CSP)
+	// onfocus事件不能冒泡 因此不能在父元素上监听到子元素的此事件
+	// 在IE下onfocusin事件可以冒泡
+	support.focusinBubbles = "onfocusin" in window;
+	
+	// 应该不影响原有的DIV的背景属性(所有背景属性都一样)
+	// 在IE下都会影响
+	div.style.backgroundClip = "content-box";
+	div.cloneNode( true ).style.backgroundClip = "";
+	support.clearCloneStyle = div.style.backgroundClip === "content-box";
+
+	// 2. 注意这个只能在DOM加载完毕后才能进行检测工作
+	// Run tests that need a body at doc ready
+	jQuery(function() {
+		var container, marginDiv,
+			// Support: Firefox, Android 2.3 (Prefixed box-sizing versions).
+			// box-sizing css3属性 content-box标准模式 border-box怪异模式(width包括padding border等)
+			// 会影响盒模型 
+			// 设置成标准模式
+			divReset = "padding:0;margin:0;border:0;display:block;-webkit-box-sizing:content-box;-moz-box-sizing:content-box;box-sizing:content-box",
+			body = document.getElementsByTagName("body")[ 0 ];
+
+		if ( !body ) {
+			// Return for frameset docs that don't have a body
+			return;
+		}
+
+		container = document.createElement("div");
+		// 创建DIV元素需要添加到body当中进行检测,设置成-9999不会影响显示
+		container.style.cssText = "border:0;width:0;height:0;position:absolute;top:0;left:-9999px;margin-top:1px";
+
+		// Check box-sizing and margin behavior.
+		body.appendChild( container ).appendChild( div );
+		div.innerHTML = "";
+		// Support: Firefox, Android 2.3 (Prefixed box-sizing versions).
+		// 将div设置成怪异模式 width = 4px
+		div.style.cssText = "-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;padding:1px;border:1px;display:block;width:4px;margin-top:1%;position:absolute;top:1%";
+
+		// Workaround failing boxSizing test due to offsetWidth returning wrong value
+		// with some non-1 values of body zoom, ticket #13543
+		// zoom设置页面的显示比例
+		jQuery.swap( body, body.style.zoom != null ? { zoom: 1 } : {}, function() {
+			support.boxSizing = div.offsetWidth === 4; //怪异模式下不算padding等,所以是4
+		});
+
+		// Use window.getComputedStyle because jsdom on node.js will break without it.
+		// node.js下不会走这个
+		if ( window.getComputedStyle ) {
+			// top属性设置百分比,其他浏览器都会转成px,而safri仍然会返回百分比 应该转成像素才能定位
+			support.pixelPosition = ( window.getComputedStyle( div, null ) || {} ).top !== "1%";
+			support.boxSizingReliable = ( window.getComputedStyle( div, null ) || { width: "4px" } ).width === "4px";
+
+			// Support: Android 2.3
+			// Check if div with explicit width and no margin-right incorrectly
+			// gets computed margin-right based on width of container. (#3333)
+			// WebKit Bug 13343 - getComputedStyle returns wrong value for margin-right
+			marginDiv = div.appendChild( document.createElement("div") );
+			marginDiv.style.cssText = div.style.cssText = divReset;
+			marginDiv.style.marginRight = marginDiv.style.width = "0";
+			div.style.width = "1px";
+			
+			support.reliableMarginRight =
+				!parseFloat( ( window.getComputedStyle( marginDiv, null ) || {} ).marginRight );
+		}
+
+		// 删除创建好的元素
+		body.removeChild( container );
+	});
+
+	return support;
+})( {} );
+```
+
+>内容解析
+
+使用案例
+
+``` javascript
+// $.support其实是一个json
+// 内部是一个自执行的匿名函数,这个匿名函数返回的是一个json
+for(var key in $.support) {
+    console.log(key  + ":" + $.support[key]);
+}
+
+
+/*
+ checkOn:true
+ optSelected:true
+ reliableMarginRight:true
+ boxSizingReliable:true
+ pixelPosition:false
+ noCloneChecked:true
+ optDisabled:true
+ radioValue:true
+ checkClone:true
+ focusinBubbles:false
+ clearCloneStyle:true
+ cors:true
+ ajax:true
+ */
+```
+
+
+## 10. 数据缓存
+- 在DOM下挂载大量的数据
+- 注意和`$().attr`和`$().prop`的区别
+
+
+
+``` javascript
+
+//内部Date构造函数
+function Data() {
+}
+
+//内部Date实例对象的方法
+Data.prototype = {
+	key:
+	set:
+	get:
+	access:
+	remove:
+	hasData:
+	discard:
+};
+
+
+//扩展工具方法(调用了实例Date对象的方法)
+jQuery.extend({
+	acceptData:
+	hasData:
+	data:
+	removeData:
+	//带_的其实是内部私有方法
+	_data:
+	_removeData:
+});
+
+//扩展实例方法(调用了实例Date对象的方法)
+jQuery.fn.extend({
+	data: 
+	removeData:
+});	
+```
+
+>内容解析
+
+DOM元素与对象之间互相引用会出现内存泄漏,使用数据缓存可以解决这个问题
+
+``` javascript
+var oDiv = document.getElementById('div1');
+var obj = {};
+
+//互相引用导致内存泄漏
+//$("#div1").attr('name',obj)
+//$("#div1").prop('name',obj)
+oDiv.name = obj;
+obj.age = oDiv;
+```
+
+使用案例
+
+``` javascript
+//实例对象的方法
+$("#div1").data("name","ziyi2");
+console.log($("#div1").data("name"));  //ziyi2
+$("#div1").removeData("name");
+console.log($("#div1").data("name"));  //undefined
+
+//工具方法
+$.data(document.body,"name","ziyi2");
+console.log($.data(document.body,"name")); //ziyi2
+console.log($.hasData(document.body));     //true
+$.removeData(document.body,"name");
+console.log($.data(document.body,"name")); //undefined
+console.log($.hasData(document.body));     //false
+```
+
+
+
+### 10.1 `Date`构造函数
+
+
+为了防止DOM元素与对象之间互相引用会出现内存泄漏,自动给DOM元素加上一个属性,这个属性[`this.expando`]的值随着数字`1`开始递增,正好对应`Date`构造函数内部的`this.cache`对象,这个对象就是从`0`开始(`0`不对应任何DOM元素,而是对应不能使用`data`的对象类型)的一个对象,每一个数字对应一个DOM元素绑定的`data`,这样由于DOM元素的属性没有直接引用对象(而是使用数字和`this.cache`对象一一对应起来),所以不会造成内存泄漏.
+
+>源码
+
+``` javascript
+function Data() {
+	// Support: Android < 4,
+	// Old WebKit does not have Object.preventExtensions/freeze method,
+	// return new empty object instead with no [[set]] accessor
+	// 详见(一)
+	// 属性0不能被修改
+	// 属性1,2,3,4...可以被修改
+	Object.defineProperty( this.cache = {}, 0, {
+		get: function() {
+			return {};
+		}
+	});
+
+	// 用于给所有需要增加data的DOM元素对象生成一个唯一的属性
+	this.expando = jQuery.expando + Math.random();
+}
+
+
+// DOM元素的this.expando属性的模式起始值是1
+Data.uid = 1;
+
+Data.accepts = function( owner ) {
+	// Accepts only:
+	//  - Node
+	//    - Node.ELEMENT_NODE
+	//    - Node.DOCUMENT_NODE
+	//  - Object
+	//    - Any
+	// 如果是节点的话只有element对象和document对象则可以存储数据
+	return owner.nodeType ?
+		owner.nodeType === 1 || owner.nodeType === 9 : true;
+};
+
+
+
+Data.prototype = {
+	key: function( owner ) {
+		// We can accept data for non-element nodes in modern browsers,
+		// but we should not, see #8335.
+		// Always return the key for a frozen object.
+		// 如果是不能存储的对象,则返回0
+		if ( !Data.accepts( owner ) ) {
+			return 0;
+		}
+
+		var descriptor = {},
+			// Check if the owner object already has a cache key
+			// DOM元素第一次设置data值时,unlock = undefined
+			// DOM元素第二次获取data值, unlocak = (dom元素的this.expando属性对应的Data.uid值)
+			unlock = owner[ this.expando ];
+
+		// If not, create one
+		// DOM第一次设置时可以进入
+		// 获取值时不会进入
+		if ( !unlock ) {
+		    //给DOM第一次加data值时需要给对应的标识符+1
+			unlock = Data.uid++;
+
+			// Secure it in a non-enumerable, non-writable property
+			try {
+			    //descriptor = {this.expando : Data.uid}
+				descriptor[ this.expando ] = { value: unlock };
+				//DOM元素对象多了一个属性this.expando,值是Data.uid
+				//只设置一次,后面增加data值时不会变
+				Object.defineProperties( owner, descriptor );
+
+			// Support: Android < 4
+			// Fallback to a less secure definition
+			} catch ( e ) {
+			    //兼容老版本写法
+				descriptor[ this.expando ] = unlock;
+				jQuery.extend( owner, descriptor );
+			}
+		}
+
+		// Ensure the cache object
+		// 第一次时给cache设置属性
+		// 例如 cache[1] = {}
+		// 因为DOM own[this.expando] = 1
+		// 所以cache的一个属性和一个dom对应
+		// 通过的就是数字1
+		// 获取值时不会进入
+		if ( !this.cache[ unlock ] ) {
+			this.cache[ unlock ] = {};
+		}
+		
+		// 返回DOM元素的标识符1
+		return unlock;
+	},
+	set: function( owner, data, value ) {
+		var prop,
+			// There may be an unlock assigned to this node,
+			// if there is no entry for this "owner", create one inline
+			// and set the unlock as though an owner entry had always existed
+			// 同样先获取owner所对应的cache的属性
+			unlock = this.key( owner ),
+			// 获取当前owner所对应的data缓存
+			// 需要注意cache和this.cache都是同一个引用
+			cache = this.cache[ unlock ];
+
+		// Handle: [ owner, key, value ] args
+		// data可能是{}
+		if ( typeof data === "string" ) {
+			cache[ data ] = value;
+
+		// Handle: [ owner, { properties } ] args
+		// 否则如果不是$.data(owner,data,value)的形式
+		// 而是$.data(owner,{data,value})的形式
+		} else {
+			// Fresh assignments by object are shallow copied
+			// 如果cache是空的,那么只要浅复制就行了
+			if ( jQuery.isEmptyObject( cache ) ) {
+				jQuery.extend( this.cache[ unlock ], data );
+			// Otherwise, copy the properties one-by-one to the cache object
+			} else {
+				// 否则就遍历data的所有属性
+				// 然后进行赋值
+				for ( prop in data ) {
+					cache[ prop ] = data[ prop ];
+				}
+			}
+		}
+		// 返回当前dom对应的data缓存
+		return cache;
+	},
+	get: function( owner, key ) {
+		// Either a valid cache is found, or will be created.
+		// New caches will be created and the unlock returned,
+		// allowing direct access to the newly created
+		// empty data object. A valid owner object must be provided.
+
+		// this.key(owner)获取和owner对应的cache的属性
+		// 例如this.key(owner) = 1
+		// 由于cache的属性和dom元素owner的this.expando属性所对应的值相同
+		// 因此也就获取了dom元素所对应的所有data缓存
+		var cache = this.cache[ this.key( owner ) ];
+
+		// 如果指定了需要获取的属性值,则获取属性对应的值
+		// 否则返回整个data缓存
+		return key === undefined ?
+			cache : cache[ key ];
+	},
+
+	//获取或设置data都通过这个函数实现
+	access: function( owner, key, value ) {
+		var stored;
+		// In cases where either:
+		//
+		//   1. No key was specified
+		//   2. A string key was specified, but no value provided
+		//
+		// Take the "read" path and allow the get method to determine
+		// which value to return, respectively either:
+		//
+		//   1. The entire cache object
+		//   2. The data stored at the key
+		// 如果没有第三个参数value
+		// 或者key也没有
+		if ( key === undefined ||
+				((key && typeof key === "string") && value === undefined) ) {
+				
+			// 获取值	
+			stored = this.get( owner, key );
+
+			// 返回值
+			return stored !== undefined ?
+				stored : this.get( owner, jQuery.camelCase(key) );
+		}
+
+		// [*]When the key is not a string, or both a key and value
+		// are specified, set or extend (existing objects) with either:
+		//
+		//   1. An object of properties
+		//   2. A key and value
+		// 如果有第三个参数,则是设置值
+		// 或者第二参数是{},没有第三参数
+		this.set( owner, key, value );
+
+		// Since the "set" path can have two possible entry points
+		// return the expected data based on which path was taken[*]
+		// 第二参数是{} 第三参数没有的情况,返回{}
+		return value !== undefined ? value : key;
+	},
+	remove: function( owner, key ) {
+		var i, name, camel,
+		    // 获取owner的data值
+			unlock = this.key( owner ),
+			cache = this.cache[ unlock ];
+
+		//如果没有第二参数就是删除所有的data
+		if ( key === undefined ) {
+			this.cache[ unlock ] = {};
+
+		} else {
+			// Support array or space separated string of keys
+			if ( jQuery.isArray( key ) ) {
+				// If "name" is an array of keys...
+				// When data is initially created, via ("key", "val") signature,
+				// keys will be converted to camelCase.
+				// Since there is no way to tell _how_ a key was added, remove
+				// both plain key and camelCase key. #12786
+				// This will only penalize the array argument path.
+				name = key.concat( key.map( jQuery.camelCase ) );
+			} else {
+				camel = jQuery.camelCase( key );
+				// Try the string as a key before any manipulation
+				// 需要注意驼峰法
+				if ( key in cache ) {
+					name = [ key, camel ];
+				} else {
+					// If a key with the spaces exists, use it.
+					// Otherwise, create an array by matching non-whitespace
+					name = camel;
+					name = name in cache ?
+						[ name ] : ( name.match( core_rnotwhite ) || [] );
+				}
+			}
+
+			i = name.length;
+			while ( i-- ) {
+				delete cache[ name[ i ] ];
+			}
+		}
+	},
+	hasData: function( owner ) {
+		return !jQuery.isEmptyObject(
+			this.cache[ owner[ this.expando ] ] || {}
+		);
+	},
+	discard: function( owner ) {
+		if ( owner[ this.expando ] ) {
+			delete this.cache[ owner[ this.expando ] ];
+		}
+	}
+};
+
+
+
+
+```
+
+>内容解析
+
+(一) `Object.defineProperty`和 `Object.preventExtensions/freeze`方法类似,可以读取设置的对象属性,不能对属性进行设置操作,但是老的版本不支持后两个方法,第三个参数还可以接收四个属性(可以详细介绍)
+
+``` javascript
+var obj = {};
+
+Object.defineProperty(obj,0,{
+    get: function() {
+        return {name:"ziyi2"}
+    }
+});
+
+console.log(obj[0].name); //ziyi2
+
+obj[0].name = "ziyi3";
+console.log(obj[0].name); //ziyi2 并不能被修改
+```
+
+(二) 案例调试
+
+``` javascript
+var div = document.getElementById("div1");
+$.data(div,"name","ziyi2");      //返回值是ziyi2
+console.log($.data(div,"name")); //ziyi2
+$.data(div,"age","27");
+console.log($.data(div,"age"));
+$.data(div,{school: 'zjut'});    //返回值是{school:'zjut}
+console.log($.data(div));        //{name:ziyi2,age:27,school:zjut}
+$.removeData(div,"name");
+$.removeData(div);               //删除所有data
+console.log($.data(div));        //{}
+console.log($.hasData(div));     //false
+```
+
+(三) 数据缓存
+
+``` javascript
+(function(window,undefined){
+     var ziyi2 = {};
+     function Date() {
+         this.data = {};
+     }
+     Date.prototype = {
+         get:function() {
+             return this.data;
+         },
+         set: function(data) {
+             this.data = data;
+         }
+     };
+     var data = new Date();
+     ziyi2.set = function(d) {
+       data.set(d);
+     };
+     ziyi2.get = function() {
+       return data.get();
+     };
+     window.ziyi2 = ziyi2; 
+ })(window);
+
+ ziyi2.set("ziyi2");        
+ console.log(ziyi2.get());  //ziyi2 为什么data变量在局部函数(自执行函数中)中没有被释放? 这个和this.cache为什么没有被释放是一个道理
 ```
 
