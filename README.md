@@ -1,4 +1,4 @@
-
+﻿
 ## 0.了解jQuery的这些属性和方法么？
 
 >注意:  本版本jQuery只支持IE9以上的浏览器
@@ -5421,5 +5421,451 @@ console.log($.hasData(div));     //false
 
  ziyi2.set("ziyi2");        
  console.log(ziyi2.get());  //ziyi2 为什么data变量在局部函数(自执行函数中)中没有被释放? 这个和this.cache为什么没有被释放是一个道理
+```
+
+类似于以下模块化写法
+
+
+``` javascript
+var collections;
+
+if(!collections) {
+    collections = {};
+}
+
+collections.family = {};
+
+(function namespace(){
+    //这里定义多种’集合‘类，使用局部变量和函数
+    //例如Person类
+    function Person(name,age){
+        this.name = name;
+        this.age = age;
+    }
+
+    //Person类的子类Father类
+    //使用Function.prototype.extend()方法来定义子类
+    var Father = Person.extend(
+        function Father(job) {
+            this.job = job;
+        }//constructor 子类的构造函数
+    );
+
+
+    //Mother类
+    //var Mother =
+
+    //省略很多其他类
+    //以及这些类的原型对象方法以及辅助函数和变量
+
+    //这样就不需要return了,外部直接引用,保持引用也不会释放内部相关的局部变量,这也是闭包,不一定要返回函数
+    collections.family.Father = Father;
+    collections.family.Person = Person;
+
+}()); //立即执行
+```
+
+(四) 模块化写法
+
+模块化: 例如CommonJS使用的`require()`函数,不同的模块必须避免修改全局执行上下文,所以模块应当尽可能少的定义全局标识，理想状况是所有的模块都不应当定义超过一个全局标识,例如(三)中的`ziyi2`和`collections.family`就是一个全局标识,在模块创建过程中避免污染全局变量的一种方法是使用一个对象作为命名空间,它将函数和值作为命名空间对象属性存储起来，而不是定义全局函数和变量
+
+``` javascript
+var father = {}; //命名空间
+
+father.Father = function(name,age){ //构造函数
+    this.name = name;
+    this.age = age;
+};
+
+var F = father.Father;  //导入到另外一个文件的全局命名空间中
+var f = new F('victor',23);
+write(f.name); //victor
+write(f.age); //23
+//模块对外导出一些共用API,这些API是提供给其他程序员使用的,包括函数，类，属性和方法
+//但是模块的实现往往需要一些辅助函数和方法
+//这些函数和方法并不需要在函数外部可见
+
+//可以将模块定义在某个函数的内部来实现
+//函数的作用域
+//在函数中声明的变量在整个函数体内都是可见的，包括嵌套的函数中
+//在函数的外部不可见
+
+//块级作用域
+(function(){
+    //模块代码
+})();
+```
+
+模块化写法一
+
+``` javascript
+//声明全局变量Person,使用一个函数的返回值给它赋值
+//函数定义后立即执行
+//返回值赋值给Person
+//注意它是一个函数表达式，因此函数'invocation'并没有创建全局变量
+
+var Person = (function invocation(){//第一行代码
+
+    function Person(name,age){ //这个构造函数是一个局部变量
+        this.name = name;
+        this.age = age;
+    }
+
+    //原型方法
+    Person.prototype.sayInfo = function(){
+        Info(); //调用了这个辅助函数
+        write(this.name + '-' + this.age);
+    };
+
+    //辅助函数和变量
+    //不属于模块的共有API,隐藏在这个函数的作用域内
+    //因此我们不必将它们定义为Person的属性
+    function Info(){
+        write(str);
+    }
+    var str = '这是一个辅助函数';
+
+    //这个模块的共有API是Person构造函数
+    //我们需要把这个函数从私有命名空间中导出来
+    //以便在外部可以使用它，我们通过返回构造函数来导出它
+    //它变成第一行代码所指的表达式的值
+    return Person;
+}()); //立即执行
+
+var p = new Person('victor',25);  //类似于闭包,一直保持对内部Person构造函数的引用?
+write(p.name); //victor
+write(p.age); //25
+p.sayInfo(); //这是一个辅助函数 victor-25
+
+//一旦将模块代码封装进一个函数，就需要一些方法导出其共用API
+//以便在模块函数的外部调用它们
+//上面的例子中模块函数返回构造函数
+//这个构造函数随后赋值给一个全局变量
+
+//将值返回表明API已经导出在函数作用域之外
+
+```
+
+模块化写法二
+
+``` javascript
+//上面只是一个类，如果包含多个类等，则可以返回命名空间对象
+
+
+//创建一个全局变量用来存放集合相关的模块
+var collections;
+
+if(!collections) {
+    collections = {};
+}
+
+//定义Family模块
+collections.family = (function namespace(){
+    //这里定义多种’集合‘类，使用局部变量和函数
+    //例如Person类
+    function Person(name,age){
+        this.name = name;
+        this.age = age;
+    }
+
+    //Person类的子类Father类
+    //使用Function.prototype.extend()方法来定义子类
+    var Father = Person.extend(
+        function Father(job) {
+            this.job = job;
+        }//constructor 子类的构造函数
+    );
+
+
+    //Mother类
+    //var Mother =
+
+    //省略很多其他类
+    //以及这些类的原型对象方法以及辅助函数和变量
+
+
+
+    //返回的是一个对象
+    //这个对象叫做命名空间对象
+    //这个对象的属性都是以上定义的类
+    return {
+        Perosn: Person,
+        Father: Father
+        //后面还有许多类似的类
+    };
+}()); //立即执行
+```
+
+模块化写法三
+
+```
+//另外一种类似的技术是将模块函数当做构造函数，通过new来调用
+var collections;
+
+if(!collections) {
+    collections = {};
+}
+
+//定义Family模块
+
+var a = (new function Person(name){ //先是一个立即执行的构造函数，然后使用new
+    this.name = name;
+}('victor'));
+
+write(a.name); //victor
+
+
+/**
+ *  new function namespance(){}()
+ */
+
+collections.family = (new function namespace(){
+    //这里定义多种’集合‘类，使用局部变量和函数
+    //例如Person类
+    function Person(name,age){
+        this.name = name;
+        this.age = age;
+    }
+
+    //Person类的子类Father类
+    //使用Function.prototype.extend()方法来定义子类
+    var Father = Person.extend(
+        function Father(job) {
+            this.job = job;
+        }//constructor 子类的构造函数
+    );
+
+
+    //Mother类
+    //var Mother =
+
+    //省略很多其他类
+    //以及这些类的原型对象方法以及辅助函数和变量
+
+
+
+    /**返回的是一个对象
+    //这个对象叫做命名空间对象
+    //这个对象的属性都是以上定义的类
+    return {
+        Person: Person,
+        Father: Father
+        //后面还有许多类似的类
+    };*/
+
+    //不要return
+    this.Person = Person; //this.Person就成了new function namespace()构造函数的一个属性
+    this.Father = Father; //所以就不需要返回了,因为namespace就是构造函数了,相当于返回了一个立即new出来的namespace构造函数实例
+
+}()); //立即执行
+
+
+```
+
+那前面几种无非就是内部有一个立即执行的匿名函数,构建了一个作用域,然后把内部的某个对象返回供给外部的window对象的属性使用,这样的话就保持了外部对内部的引用,也可以直接这么干,其实也就是类似了(三)的写法,需要注意的是有闭包的思想
+
+```
+//另外一种替代的方法
+
+var collections;
+
+if(!collections) {
+    collections = {};
+}
+
+collections.family = {};
+
+(function namespace(){
+    //这里定义多种’集合‘类，使用局部变量和函数
+    //例如Person类
+    function Person(name,age){
+        this.name = name;
+        this.age = age;
+    }
+
+    //Person类的子类Father类
+    //使用Function.prototype.extend()方法来定义子类
+    var Father = Person.extend(
+        function Father(job) {
+            this.job = job;
+        }//constructor 子类的构造函数
+    );
+
+
+    //Mother类
+    //var Mother =
+
+    //省略很多其他类
+    //以及这些类的原型对象方法以及辅助函数和变量
+
+    //这样就不需要return了
+    collections.family.Father = Father;
+    collections.family.Person = Person;
+
+}()); //立即执行
+```
+
+补充说明闭包在块级作用域中的使用
+
+```
+//JS将function关键字当做一个函数声明的开始，函数声明后面不能跟圆括号
+//函数表达式的后面可以跟圆括号
+//要将函数声明转换成函数表达式只要给它加上一对圆括号即可
+(function(){
+    //这里是块级作用域
+})();
+//如果在某些地方只是临时需要一些变量，就可以私有作用域
+function outputNumbers(count){
+    (function(){
+        //块级作用域
+        for(var i=0;i<count;i++){
+            write(i);
+        }
+    })();
+
+    write(i); //Uncaught ReferenceError: i is not defined
+}
+
+outputNumbers(10);
+
+//在这个函数中，在for循环外部插入了一个私有作用域
+//在匿名函数中定义的任何变量，都会在执行结束时被销毁
+//所以匿名函数下的i被报错
+
+//这种技术经常在全局作用域中被用在函数外部，从而限制向全局作用域中添加过多的变量和函数
+//通过创建私有作用域，每个开发人员既可以使用自己的变量，又不必担心捣乱全局作用域
+
+
+(function(){
+    //都变成了局部变量
+    //调用完即销毁变量
+    
+    var now = new Date();
+    if(now.getMonth() == 0 && now.getDate() == 1){
+        write("Happy new year");
+    }
+})();
+//now是局部变量，不必在全局作用域中创建它
+
+/*私有变量*/
+//在任何函数中定义的变量都可以认为是私有变量
+//私有变量包括函数的参数、局部变量和函数内部定义的其他函数
+
+//如果在函数内部创建闭包，那么闭包通过自己的作用域链可以访问私有变量（函数外部不能访问它们）
+//这样就可以创建用于访问私有变量的共有方法了
+function MyObject(){
+    //私有变量
+    var privateVar = 1;
+    //私有函数
+    var privateFun = function(){
+        return false;
+    }
+
+    //特权方法
+    this.publicFun = function(){
+        privateVar ++;
+        return privateFun();
+    }
+}
+
+//特权方法作为闭包有权访问在构造函数中定义的所有变量和函数
+//并且想想闭包的特性，外部活动对象的内存在引用完之前是不会被释放的！
+//除了使用publicFun()这一个途径外，没有任何办法可以直接访问privateVar和privateFun
+
+//利用私有和特权成员，可以隐藏那些不应该被直接修改的数据
+function Person(name){ //构造函数
+    //特权方法
+    this.getName = function(){
+        return name;
+    };
+    //特权方法
+    this.setName = function(value){
+        name = value;
+    };
+}
+
+var Per = new Person("Victor");
+write(Per.getName()); //Victor  之所以name还保存着Victor，是因为闭包的特性导致活动对象的name属性不会被释放
+Per.setName("Hugo");
+write(Per.getName()); //Hugo
+
+//getName和setName方法可以在构造函数的外部使用
+//而且都有权访问私有变量name
+//这两个方法是在构造函数内部定义的，他们作为闭包能够通过作用域链访问name
+//缺点，方法使用了构造函数，针对每个实例都会创建同样的一组新方法，需要使用原型对象来共享方法
+
+```
+
+需要注意在`jQuery`源码中的两个`Date`实例对象跟以下情况有点类似
+
+
+``` javascript
+/*静态私有变量*/
+(function(){
+    var name = "";
+                          
+    //定义构造函数时并没有使用函数声明，而是使用了函数表达式
+    //函数声明创建的是局部函数，这不是我们想要的
+    //这里需要的是全局函数
+    //函数执行完后构造函数不会被释放
+    //初始化未经声明的变量（没有使用var关键字声明）总是会创建一个全局变量
+    Person = function(value){ //构造函数，没有使用var说明是全局函数，能够在私有作用域外被访问，在严格模式中会报错
+        name = value;
+    };
+
+    Person.prototype.getName = function(){ //私有变量和函数是由实例共享的，特权方法是在原型上定义的，所有实例都是使用同一个函数
+        return name;                       //特权方法作为一个闭包，总是保存着对包含作用域的引用
+    };
+
+    Person.prototype.setName = function(value){
+        name = value;
+    };
+}());
+
+//这个例子中Person构造函数与getName和setName方法一样都有权访问私有变量name
+//在这种模式下，name就变成了一个静态的、由所有实例共享的属性
+//这种方式创建的私有变量会因为使用原型而增进了代码复用，但每个实例都没有自己的私有变量
+//多查找作用域链中的一个层次，就会在一定程度上影响查找速度，这是使用闭包和私有变量的不足之处
+
+var per = new Person("Victor");
+write(per.getName()); //Victor
+var per2 = new Person("Hugo");
+write(per.getName()); //Hugo
+write(per2.getName()); //Hugo 所有实例对象共享了name属性
+```
+
+模块模式,在`$.Callback`中得到了充分体现
+
+``` javascript
+//模块模式是为单例创建私有变量和特权方法
+//单例值得就是只有一个实例对象
+//按照惯例，JS是以对象字面量的方式来创建单例对象的
+
+//例如
+var singleObject = {
+    name:"Single",
+    method:function(){
+        //这里是方法的代码
+    }
+}
+
+//模块模式通过为单例添加私有变量和特权方法能够使其得到增强
+var single = function(){  //返回的是一个对象的匿名函数
+    //私有变量和私有属性
+    var privateVar = 10;
+
+    function privateFun(){
+        return false;
+    }
+
+    //特权、公有方法和属性
+    return {
+        publicVar: true,
+        publicFun: function(){
+            privateVar ++;
+            return privateFun();
+        }
+    };
+}();
 ```
 
