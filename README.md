@@ -5869,3 +5869,240 @@ var single = function(){  //返回的是一个对象的匿名函数
 }();
 ```
 
+### 10.2 `data`工具方法
+
+调用的就是`data`构造函数的实例方法
+
+
+>源码
+
+``` javascript
+// These may be used throughout the jQuery core codebase
+data_user = new Data();
+data_priv = new Data();
+
+jQuery.extend({
+	acceptData: Data.accepts,
+
+	hasData: function( elem ) {
+		return data_user.hasData( elem ) || data_priv.hasData( elem );
+	},
+
+	data: function( elem, name, data ) {
+		return data_user.access( elem, name, data );
+	},
+
+	removeData: function( elem, name ) {
+		data_user.remove( elem, name );
+	},
+
+	// TODO: Now that all calls to _data and _removeData have been replaced
+	// with direct calls to data_priv methods, these can be deprecated.
+	_data: function( elem, name, data ) {
+		return data_priv.access( elem, name, data );
+	},
+
+	_removeData: function( elem, name ) {
+		data_priv.remove( elem, name );
+	}
+});
+```
+
+### 10.3 `data`实例方法
+
+
+>源码
+
+``` javascript
+jQuery.fn.extend({
+	data: function( key, value ) {
+		var attrs, name,
+			// 获取$()[0]元素
+			elem = this[ 0 ],
+			i = 0,
+			data = null;
+
+		// Gets all values
+		// 如果一个参数都没有 $().data() 则获取所有缓存
+		if ( key === undefined ) {
+			//dom元素如果存在
+			if ( this.length ) {
+				//获取数据,这里获取的是构造函数Date的this.cache中的值
+				data = data_user.get( elem );
+					
+				//这里获取HTML5中的dom属性data-的值	
+				if ( elem.nodeType === 1 && !data_priv.get( elem, "hasDataAttrs" ) ) {
+					//获取元素的attributes值
+					attrs = elem.attributes;
+					//遍历所有的属性(可能有多个data-)
+					for ( ; i < attrs.length; i++ ) {
+						//详见(一),获取id/data-set/style
+						name = attrs[ i ].name;
+
+						//找到data-set值
+						if ( name.indexOf( "data-" ) === 0 ) {
+
+							//获取set
+							name = jQuery.camelCase( name.slice(5) );
+							//获取html元素中的data-的属性值
+							dataAttr( elem, name, data[ name ] );
+						}
+					}
+					data_priv.set( elem, "hasDataAttrs", true );
+				}
+			}
+
+			//返回this.cache和dom元素的data-的组合对象值
+			return data;
+		}
+
+		// Sets multiple values
+		// 设置多个值 $().data({})
+		if ( typeof key === "object" ) {
+			return this.each(function() {
+				data_user.set( this, key );
+			});
+		}
+		
+		//
+		return jQuery.access( this, function( value ) {
+			var data,
+				camelKey = jQuery.camelCase( key );
+
+			// The calling jQuery object (element matches) is not empty
+			// (and therefore has an element appears at this[ 0 ]) and the
+			// `value` parameter was not undefined. An empty jQuery object
+			// will result in `undefined` for elem = this[ 0 ] which will
+			// throw an exception if an attempt to read a data cache is made.
+			// 如果elem存在并且value==undefined
+			// 则是获取数据
+			if ( elem && value === undefined ) {
+				// Attempt to get data from the cache
+				// with the key as-is
+				// 先获取原始数据例如family-name
+				// 详见(一)
+				data = data_user.get( elem, key );
+				// 由于family-name是转驼峰存储 即familyName 因此data = undefined
+				// 其他形式则可以返回值
+				if ( data !== undefined ) {
+					return data;
+				}
+
+				// Attempt to get data from the cache
+				// with the key camelized
+				// 尝试获取驼峰数据
+				data = data_user.get( elem, camelKey );
+				if ( data !== undefined ) {
+					return data;
+				}
+
+				// Attempt to "discover" the data in
+				// HTML5 custom data-* attrs
+				// 如果this.cache中没有该属性值,则获取html5中的该值试试
+				data = dataAttr( elem, camelKey, undefined );
+				if ( data !== undefined ) {
+					return data;
+				}
+
+				// We tried really hard, but the data doesn't exist.
+				return;
+			}
+
+			// Set the data...
+			// 设置数据 例如$().data({name:'zhuxianakang'})
+			// this.each 对所有符合条件的元素进行设置
+			// 详见(一)
+			this.each(function() {
+				// First, attempt to store a copy or reference of any
+				// data that might've been store with a camelCased key.
+				//详见(一)最后
+				var data = data_user.get( this, camelKey );
+
+				// For HTML5 data-* attribute interop, we have to
+				// store property names with dashes in a camelCase form.
+				// This might not apply to all properties...*
+				data_user.set( this, camelKey, value );
+
+				// *... In the case of properties that might _actually_
+				// have dashes, we need to also store a copy of that
+				// unchanged property.
+				if ( key.indexOf("-") !== -1 && data !== undefined ) {
+					data_user.set( this, key, value );
+				}
+			});
+
+		// arguments.length如果>1则说设置数据
+		// 否则是获取数据 
+		
+		}, null, value, arguments.length > 1, null, true );
+	},
+
+	removeData: function( key ) {
+		return this.each(function() {
+			data_user.remove( this, key );
+		});
+	}
+});
+
+
+function dataAttr( elem, key, data ) {
+	var name;
+
+	// If nothing was found internally, try to fetch any
+	// data from the HTML5 data-* attribute
+	if ( data === undefined && elem.nodeType === 1 ) {
+		//data-set set只是一种情况,如果是data-set-name,
+		name = "data-" + key.replace( rmultiDash, "-$1" ).toLowerCase();
+		//获取data-set的值zhuxiankang
+		data = elem.getAttribute( name );
+
+		if ( typeof data === "string" ) {
+			try {
+				data = data === "true" ? true :
+					data === "false" ? false :
+					data === "null" ? null :
+					// Only convert to a number if it doesn't change the string
+					+data + "" === data ? +data :
+					rbrace.test( data ) ? JSON.parse( data ) :
+					data;
+			} catch( e ) {}
+
+			// Make sure we set the data so it isn't changed later
+			// 设置this.cache的值,增加在html的dom元素的data-的属性值到this.cache
+			data_user.set( elem, key, data );
+		} else {
+			data = undefined;
+		}
+	}
+	return data;
+}
+
+
+
+
+```
+
+>内容解析
+
+(一) 设置和获取数据(dom元素没有设置`data-`属性)
+
+``` javascript
+
+ <div id="div1" data-set="zhuxiankang" style="background: #ff0000; width: 100px; height: 200px" >
+
+$('#div1').data('name','zhuxiankang');
+$('#div1').data('family-name','zhuxiankang');
+console.log($('#div1').data('family-name'));	//zhuxiankang
+console.log($('#div1').data());
+//{familyName:"zhuxiankang",name:"zhuxiankang",set:"zhuxiankang"}
+$("#div1").data('set');  //zhuxiankang
+$("#div1").data({1:'1',2:'2'});
+console.log($("#div1").data());  //{1:'1',2:'2',set:'zhuxiankang'}
+
+$("#div1").data('nameAge','ziyi3');
+$("#div1").data('name-age','ziyi2');
+console.log($("#div1").data()); //nameAge:ziyi2 name-age:ziyi2
+```
+
+
+
