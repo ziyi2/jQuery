@@ -5598,7 +5598,7 @@ collections.family = (function namespace(){
 
 模块化写法三
 
-```
+``` javascript
 //另外一种类似的技术是将模块函数当做构造函数，通过new来调用
 var collections;
 
@@ -5664,7 +5664,7 @@ collections.family = (new function namespace(){
 
 那前面几种无非就是内部有一个立即执行的匿名函数,构建了一个作用域,然后把内部的某个对象返回供给外部的window对象的属性使用,这样的话就保持了外部对内部的引用,也可以直接这么干,其实也就是类似了(三)的写法,需要注意的是有闭包的思想
 
-```
+``` javascript
 //另外一种替代的方法
 
 var collections;
@@ -5707,7 +5707,7 @@ collections.family = {};
 
 补充说明闭包在块级作用域中的使用
 
-```
+``` javascript
 //JS将function关键字当做一个函数声明的开始，函数声明后面不能跟圆括号
 //函数表达式的后面可以跟圆括号
 //要将函数声明转换成函数表达式只要给它加上一对圆括号即可
