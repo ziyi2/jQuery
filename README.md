@@ -5366,6 +5366,7 @@ Data.prototype = {
 var obj = {};
 
 Object.defineProperty(obj,0,{
+	//只能读取,不能写入,写入会被忽略
     get: function() {
         return {name:"ziyi2"}
     }
@@ -5376,6 +5377,72 @@ console.log(obj[0].name); //ziyi2
 obj[0].name = "ziyi3";
 console.log(obj[0].name); //ziyi2 并不能被修改
 ```
+
+
+`defineProperty()`传递三个参数：属性所在的对象，属性的名字，一个描述符对象(描述符对象的属性必须是 `configurable、enumerable、writable和value`,可以设置一个或多个属性值)可以设置一个或多个属性值
+- `configurable：`能否通过`delete`删除属性从而重新定义属性，能否修改属性的特性，能否把属性修改成访问器属性
+- `enumerable`：能否通过`for-in`循环返回属性
+- `writable`：能否修改属性的值
+- `value`：读取属性值得时候从这个位置读，写入属性值得时候把新值保存在这个位置
+
+
+``` javascript
+var Person = {};
+
+Object.defineProperty(Person,"name", {
+    configurable:false,
+    writable: false,//不可写
+    value: "zhuxiankang"
+});
+
+alert(Person.name); //zhuxiankang
+Person.name = "ziyi2";
+alert(Person.name); //zhuxiankang 只读的，不能写，所以值不会变
+
+delete Person.name;
+alert(Person.name);//zhuxiankang 不能从对象中删除属性
+```
+
+一旦把属性定义为不可配置，就不能在把它变为可配置的，此时如果修改除`writable`之外的特性都会导致错误
+
+``` javascript
+Object.defineProperty(Person,"name", { //Uncaught TypeError: Cannot redefine property: name
+    configurable:true,
+    writable: false,//不可写
+    value: "zhuxiankang"
+});
+
+//可以多次修改同一个属性，但是把configurable设置为false以后就会有限制了
+```
+
+- `get`:在读取属性时调用的函数，默认为`undefined`
+- `set`:在写入属性时调用的函数，默认为`undefined`
+
+``` javascript
+var book = {
+    _year:      2004,
+    version:    1
+};
+
+Object.defineProperty(book,"year",{
+    get:function(){
+        return this._year;
+    },
+    set:function(newValue){
+        if(newValue > 2004){
+            this._year = newValue;
+            this.version = newValue - 2004;
+        }
+    }
+});
+
+//读取访问其属性时会调用get函数，而这里是写入访问器属性的值，调用了setter函数并写入了新值
+book.year = 2005;//访问器属性year的值修改了以后导致了其他属性也修改了
+alert(book._year); //2005
+alert(book.version); //1
+```
+
+>注意: 只指定`getter`意味着属性是不能写，尝试写入属性会被忽略,只指定`setter`函数的属性也不能读
 
 (二) 案例调试
 
@@ -6103,6 +6170,9 @@ $("#div1").data('nameAge','ziyi3');
 $("#div1").data('name-age','ziyi2');
 console.log($("#div1").data()); //nameAge:ziyi2 name-age:ziyi2
 ```
+
+
+
 
 
 
