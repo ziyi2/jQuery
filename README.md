@@ -6151,7 +6151,7 @@ function dataAttr( elem, key, data ) {
 
 >内容解析
 
-(一) 设置和获取数据(dom元素没有设置`data-`属性)
+设置和获取数据
 
 ``` javascript
 
@@ -6171,8 +6171,34 @@ $("#div1").data('name-age','ziyi2');
 console.log($("#div1").data()); //nameAge:ziyi2 name-age:ziyi2
 ```
 
+## 11. 队列管理
+
+- 队列管理主要的功能使异步操作按顺序执行,从而可以防止地狱回调
+- 队列管理和`$.Callback`以及`$.Deffered`最大的区别在于队列管理可以对更多的异步函数进行管理,从而功能更强大,后两者一般只能对单个异步函数进行管理.
 
 
+> 内容解析
 
+``` javascript
+function fn1() {
+    console.log('a');
+}
 
+function fn2() {
+    console.log('b');
+}
+
+$.queue(document,'fn', [fn1,fn2]);  //也可以一个个增加
+$.dequeue(document,'fn');           //a, 执行了fn1
+$.dequeue(document,'fn');           //b, 执行了fn2
+```
+
+`$().animate`可以利用队列功能让多个异步函数可以按顺序执行
+
+```
+$('#div').animate({left:'200px'});      //需要注意设置元素的定位为relative/fixed/absolute
+$('#div').animate({top:'200px'});
+$('#div').animate({left:'0'});
+$('#div').animate({top:'0'});
+```
 
