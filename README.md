@@ -6250,12 +6250,19 @@ jQuery.extend({
 
 	//出队方法
 	dequeue: function( elem, type ) {
+		//type默认是fx
 		type = type || "fx";
-
+		
+		//利用$.queue没有第三参数获取queue
 		var queue = jQuery.queue( elem, type ),
 			startLength = queue.length,
+			//推出最前面的一个数组元素
 			fn = queue.shift(),
+			//这个钩子函数只有当empty.fire()时候才会触发add()函数
+			//如果queue还有值,则返回queue
 			hooks = jQuery._queueHooks( elem, type ),
+			//next只要用于回调函数的第二参数
+			//详见(二)
 			next = function() {
 				jQuery.dequeue( elem, type );
 			};
@@ -6265,7 +6272,8 @@ jQuery.extend({
 			fn = queue.shift();
 			startLength--;
 		}
-
+	
+		//如果有需要执行的fn
 		if ( fn ) {
 
 			// Add a progress sentinel to prevent the fx queue from being
@@ -6276,9 +6284,12 @@ jQuery.extend({
 
 			// clear up the last queue stop function
 			delete hooks.stop;
+			//执行回调函数,需要注意执行next就是执行dequeue
 			fn.call( elem, next, hooks );
 		}
 
+		//如果startLength等于0
+		//没有需要执行的fn时删除fnqueue和fnqueueHooks属性
 		if ( !startLength && hooks ) {
 			hooks.empty.fire();
 		}
@@ -6307,7 +6318,203 @@ jQuery.extend({
 (一)  `$.queue`方法解析
 
 ``` javascript
+console.log($.queue(document,'fn', fn1));		//[fn1]
+console.log($.queue(document,'fn', fn2));		//[fn1,fn2]
+console.log($.queue(document,'fn', [fn3]));		//[fn3] 之前的fn1和fn2都没了
+console.log($.queue(document,'fn'));			//没有第三个参数,则是获取queue队列中的函数
+$.dequeue(document,'fn');                       //this is fn3...
+$.dequeue(document,'fn');                       //此时没有任何可以执行的回调函数,并销毁fnqueue
+```
 
+(二) `next`参数(第二参数)
+
+``` javascript
+function fn1(next) {
+    console.log("this is fn1...");
+    console.log(this === document);           //this指向了document 内部使用fn1.call(document,next,hooks)
+    next();
+}
+
+function fn2() {
+    console.log("this is fn2...");
+}
+
+console.log($.queue(document,'fn', fn1));		//[fn1]
+console.log($.queue(document,'fn', fn2));		//[fn1,fn2]
+
+$.dequeue(document,'fn');
+//this is fn1
+//true
+//this if fn2
+```
+
+(三) `hooks`参数(第三参数)
+
+``` javascript
+function fn1(next,hooks) {
+	console.log("this is fn1...");
+	console.log(this === document);
+	hooks.empty.fire(); //清空了queue
+}
+
+function fn2() {
+   console.log("this is fn2...");
+}
+
+console.log($.queue(document,'fn', fn1));		//[fn1]
+console.log($.queue(document,'fn', fn2));		//[fn1,fn2]
+
+$.dequeue(document,'fn');
+//this is fn1
+//true
+
+$.dequeue(document,'fn');
+//因为queue为空,相当于又执行了一次hooks.empty.fire()
+```
+
+
+(四) 私有方法`_queueHooks`
+
+- 尽管私有,但是对外可见
+
+``` javascript
+console.log($._queueHooks);
+```
+
+
+
+### 11.2 `queue`实例方法
+
+
+
+>源码
+
+``` javascript
+jQuery.fn.extend({
+	queue: function( type, data ) {
+		var setter = 2;
+
+		//如果type没有,即省略第一参数,则只是传入data
+		//因此data = type
+		if ( typeof type !== "string" ) {
+			data = type;
+			type = "fx";
+			setter--;
+		}
+
+		//如果一个参数都没有
+		if ( arguments.length < setter ) {
+			return jQuery.queue( this[0], type );
+		}
+
+		return data === undefined ?
+			this :
+			//this.each说明this匹配了多个dom对象,因此要对每一个对象进行queue
+			this.each(function() {
+				var queue = jQuery.queue( this, type, data );
+
+				// ensure a hooks for this queue
+				jQuery._queueHooks( this, type );
+
+
+				//例如delay函数,此时会出队
+				/*
+					function( next, hooks ) {
+						var timeout = setTimeout( next, time );
+						hooks.stop = function() {
+							clearTimeout( timeout );
+						};
+					}
+				*/
+				if ( type === "fx" && queue[0] !== "inprogress" ) {
+					jQuery.dequeue( this, type );
+				}
+			});
+	},
+	dequeue: function( type ) {
+		return this.each(function() {
+			jQuery.dequeue( this, type );
+		});
+	},
+	// Based off of the plugin by Clint Helfers, with permission.
+	// http://blindsignals.com/index.php/2009/07/jquery-delay/
+
+
+
+	/*
+    [8569]
+	jQuery.fx.speeds = {
+		slow: 600,
+		fast: 200,
+		// Default speed
+		_default: 400
+	};
+	*/	
+	delay: function( time, type ) {
+		time = jQuery.fx ? jQuery.fx.speeds[ time ] || time : time;
+		type = type || "fx";
+		
+		//需要注意data传入的参数就是函数function(next,hoos)类似于fn1 fn2...
+		return this.queue( type, function( next, hooks ) {
+			var timeout = setTimeout( next, time );
+			hooks.stop = function() {
+				clearTimeout( timeout );
+			};
+		});
+	},
+
+	//清空队列
+	clearQueue: function( type ) {
+		return this.queue( type || "fx", [] );
+	},
+	// Get a promise resolved when queues of a certain type
+	// are emptied (fx is the type by default)
+	promise: function( type, obj ) {
+		var tmp,
+			count = 1,
+			defer = jQuery.Deferred(),
+			elements = this,
+			i = this.length,
+			resolve = function() {
+				//一个队列执行完毕就count--
+				if ( !( --count ) ) {
+					//如果队列执行完毕就可以resoveWith触发外部的done函数
+					//详见(四)
+					defer.resolveWith( elements, [ elements ] );
+				}
+			};
+
+		if ( typeof type !== "string" ) {
+			obj = type;
+			type = undefined;
+		}
+		type = type || "fx";
+
+		while( i-- ) {
+			//获取所有所有element的queue队列
+			tmp = data_priv.get( elements[ i ], type + "queueHooks" );
+				
+			if ( tmp && tmp.empty ) {
+				//count++表明所有的队列++
+				count++;
+				//添加resolve函数
+				//在dequeue中如果一个queue执行完毕会fire
+				tmp.empty.add( resolve );
+			}
+		}
+		resolve();
+		return defer.promise( obj );
+	}
+});
+```
+
+
+>内容解析
+
+(一)  `$().queue()`
+
+
+```
 function fn1() {
     console.log("this is fn1...");
 }
@@ -6316,12 +6523,51 @@ function fn2() {
     console.log("this is fn2...");
 }
 
-function fn3() {
-    console.log("this is fn3...");
+$(document).queue('fn',fn1);
+$(document).queue('fn',fn1);
+$(document).queue('fn',fn2);
+
+$(document).queue(fn2); //this is fn2  直接duqueue了! 保证第一次自执行?
+//animate方法的自执行操作?
+```
+
+
+(二)  `$().dequeue()`
+
+``` javascript
+function fn1(next,hooks) {
+    console.log("this is fn1...");
+    next();          //相当于fn1执行完了才可以执行next(), 如果fn1是异步函数则控制了异步的行为按顺序执行了
 }
 
-console.log($.queue(document,'fn', fn1));		//[fn1]
-console.log($.queue(document,'fn', fn2));		//[fn1,fn2]	
-console.log($.queue(document,'fn', [fn3]));		//[fn3] 之前的fn1和fn2都没了
-console.log($.queue(document,'fn'));			//没有第三个参数,则是获取queue队列中的函数
+function fn2() {
+    console.log("this is fn2...");
+}
+
+$(document).queue('fn',fn1);
+$(document).queue('fn',fn1);
+$(document).queue('fn',fn2);
+
+$(document).dequeue('fn'); //fn1 -> next() -> fn1 -> next() -> fn2
+//this is fn1 
+//this is fn1
+//this is fn2
 ```
+
+
+(三)  `$().delay()`
+
+``` javascript
+$('#div1').animate({left:'200px'}).delay(2000).animate({left:'0'})
+```
+
+(四) `$().promise()`
+
+``` javascript
+$('#div1').animate({left:'200px'}).delay(2000).animate({left:'0'})
+
+$('#div1').promise().done(function() {
+    alert("运动执行完毕!");
+})
+```
+
