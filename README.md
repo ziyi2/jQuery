@@ -6243,6 +6243,7 @@ jQuery.extend({
 			}
 			//返回data_priv中该elem对应的uid下的[type + 'queue']属性
 			//这个值是一个数组,这个数组的元素是所有queue的函数
+			//需要注意,如果没有data参数,例如$.queue(document,'fn'),则是获取queue队列中的函数操作
 			return queue || [];
 		}
 	},
@@ -6322,4 +6323,5 @@ function fn3() {
 console.log($.queue(document,'fn', fn1));		//[fn1]
 console.log($.queue(document,'fn', fn2));		//[fn1,fn2]	
 console.log($.queue(document,'fn', [fn3]));		//[fn3] 之前的fn1和fn2都没了
+console.log($.queue(document,'fn'));			//没有第三个参数,则是获取queue队列中的函数
 ```
