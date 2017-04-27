@@ -6202,3 +6202,124 @@ $('#div').animate({left:'0'});
 $('#div').animate({top:'0'});
 ```
 
+### 11.1 `queue`工具方法
+
+>源码
+
+``` javascript
+
+// [3654]
+jQuery.extend({
+	//入队方法
+	queue: function( elem, type, data ) {
+		var queue;
+
+		if ( elem ) {
+			//详见(一)
+			//type = fn + queue
+			type = ( type || "fx" ) + "queue";
+			//先从data的this.cache中获取一下fnqueue是否存在
+			//需要注意如果第二次设置同一个elem对象的同一个type属性,则这里先获取this.cache.uid[type+'queue']
+			//例如(一)的 $.queue(document,'fn', fn2);
+			//此时queue = this.cache.uid[type+'queue']
+			queue = data_priv.get( elem, type );
+
+			// Speed up dequeue by getting out quickly if this is just a lookup
+			// 如果data存在,则是要queue入队处理
+			if ( data ) {
+				//如果data_priv这个data缓存中不存在fnqueue这个属性,并且需要入队的参数是数组
+				//如果传入的data是一个数组,则覆盖之前的fnqueue属性
+				//例如$.queue(document,'fn', [fn3]),此时data是数组
+				if ( !queue || jQuery.isArray( data ) ) {
+					//将需要入队的函数参数放入data_priv.cache.1.fnqueue = [data]
+					//需要注意fnqueue这个属性是一个数组
+					queue = data_priv.access( elem, type, jQuery.makeArray(data) );
+				//如果queue已经存在,则说明queue = this.cache.uid[type+'queue']
+				//此时再次this.cache.uid[type+'queue'].push(data)
+				//所以data_priv中该elem对应的uid下的[type + 'queue']属性就改变了
+				} else {
+					queue.push( data );
+				}
+			}
+			//返回data_priv中该elem对应的uid下的[type + 'queue']属性
+			//这个值是一个数组,这个数组的元素是所有queue的函数
+			return queue || [];
+		}
+	},
+
+	//出队方法
+	dequeue: function( elem, type ) {
+		type = type || "fx";
+
+		var queue = jQuery.queue( elem, type ),
+			startLength = queue.length,
+			fn = queue.shift(),
+			hooks = jQuery._queueHooks( elem, type ),
+			next = function() {
+				jQuery.dequeue( elem, type );
+			};
+
+		// If the fx queue is dequeued, always remove the progress sentinel
+		if ( fn === "inprogress" ) {
+			fn = queue.shift();
+			startLength--;
+		}
+
+		if ( fn ) {
+
+			// Add a progress sentinel to prevent the fx queue from being
+			// automatically dequeued
+			if ( type === "fx" ) {
+				queue.unshift( "inprogress" );
+			}
+
+			// clear up the last queue stop function
+			delete hooks.stop;
+			fn.call( elem, next, hooks );
+		}
+
+		if ( !startLength && hooks ) {
+			hooks.empty.fire();
+		}
+	},
+
+	// not intended for public consumption - generates a queueHooks object, or returns the current one
+	// 私有方法
+	_queueHooks: function( elem, type ) {
+		var key = type + "queueHooks";
+		return data_priv.get( elem, key ) || data_priv.access( elem, key, {
+			empty: jQuery.Callbacks("once memory").add(function() {
+				data_priv.remove( elem, [ type + "queue", key ] );
+			})
+		});
+	}
+});
+```
+
+
+
+
+
+>内容解析
+
+
+(一)  `$.queue`方法解析
+
+``` javascript
+
+function fn1() {
+    console.log("this is fn1...");
+}
+
+function fn2() {
+    console.log("this is fn2...");
+}
+
+function fn3() {
+    console.log("this is fn3...");
+}
+
+console.log($.queue(document,'fn', fn1));		//[fn1]
+console.log($.queue(document,'fn', fn2));		//[fn1,fn2]	
+console.log($.queue(document,'fn', [fn3]));		//[fn3] 之前的fn1和fn2都没了
+```
