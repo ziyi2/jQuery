@@ -6415,17 +6415,9 @@ jQuery.fn.extend({
 
 				// ensure a hooks for this queue
 				jQuery._queueHooks( this, type );
+				
 
-
-				//例如delay函数,此时会出队
-				/*
-					function( next, hooks ) {
-						var timeout = setTimeout( next, time );
-						hooks.stop = function() {
-							clearTimeout( timeout );
-						};
-					}
-				*/
+				//$().animate()第一次需要自执行时会满足条件进来
 				if ( type === "fx" && queue[0] !== "inprogress" ) {
 					jQuery.dequeue( this, type );
 				}
