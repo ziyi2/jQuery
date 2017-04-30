@@ -6563,3 +6563,188 @@ $('#div1').promise().done(function() {
 })
 ```
 
+
+## 元素属性
+
+``` javascript
+
+//对外使用的实例方法
+$.fn.extend({
+	attr
+	removeAttr
+	prop
+	removeProp
+	addClass
+	removeClass
+	toggleClass
+	hasClass
+	val
+});
+
+//这些工具方法通常是内部使用
+$.extend({
+	valHooks
+	attr
+	removeAttr
+	attrHooks
+	propFix
+	prop
+	propHooks
+});
+
+```
+
+>内容解析
+
+例如`attr`和`prop`方法的区别
+
+``` javascript
+//设置元素的默认属性
+var $div = $("#a");
+$div.attr("href","http://baidu.com");
+console.log($div.attr("href"));		//http://baidu.com
+$div.prop("href","http://ziyi2.com");
+console.log($div.prop("href"));		//http://ziyi2.com/
+
+//设置元素的自定义属性
+$div.attr("baidu","http://baidu.com");
+console.log($div.attr("baidu"));	//http://baidu.com
+$div.prop("ziyi2","http://ziyi2.com");
+console.log($div.attr("ziyi2"));	//undefined
+```
+
+
+
+### `$().attr()`和`$.attr()`
+
+
+``` javascript
+
+//[3805] $().attr()
+attr: function( name, value ) {
+    //最后一个参数用于判断是获取还是设置操作
+    //access方法用于在这里用于遍历this这个elems，并且调用jQuery.attr函数进行操作	
+    return jQuery.access( this, jQuery.attr, name, value, arguments.length > 1 );
+},
+
+
+//[4091] $.attr()
+attr: function( elem, name, value ) {
+	var hooks, ret,
+		nType = elem.nodeType;
+
+	// don't get/set attributes on text, comment and attribute nodes
+	// 首先判断elem是不是非文本、注释和属性节点，这些节点不能进行对象属性设置
+	if ( !elem || nType === 3 || nType === 8 || nType === 2 ) {
+		return;
+	}
+
+	// Fallback to prop when attributes are not supported
+	// 如果getAttribute方法存在，例如console.log(document.getAttribute)  //undefined
+	if ( typeof elem.getAttribute === core_strundefined ) {
+		// 那就调用prop方法设置属性，prop方法本质上设置对象的属性操作，使用.或[]方法
+		return jQuery.prop( elem, name, value );
+	}
+
+	// All attributes are lowercase
+	// Grab necessary hook if one is defined
+	// 如果不是xml文档，或者不是element对象
+	if ( nType !== 1 || !jQuery.isXMLDoc( elem ) ) {
+		name = name.toLowerCase();
+		//如果设置的是type属性，则走jQuery.attrHooks[ name ]
+		//否则匹配这些属性[/^(?:checked|selected|async|autofocus|autoplay|controls|defer|disabled|hidden|ismap|loop|multiple|open|readonly|required|scoped)$/i]
+		//走boolHook函数,因为这些属性都应该可以通过布尔值进行设置
+		//如果还没有这些属性,那就走nodeHook其实是undefined
+		hooks = jQuery.attrHooks[ name ] ||
+			( jQuery.expr.match.bool.test( name ) ? boolHook : nodeHook );
+	}
+	
+	//如果value存在
+	if ( value !== undefined ) {
+		//如果value设置为null则是移除属性
+		if ( value === null ) {
+			jQuery.removeAttr( elem, name );
+		//否则判断hooks是否存在，且hooks.set方法存在（则需要做兼容性处理，使$().attr("checked",true)这样的方法也可以使用）
+		} else if ( hooks && "set" in hooks && (ret = hooks.set( elem, value, name )) !== undefined ) {
+			return ret;
+
+		} else {
+			//可能value不是字符串，则转化为字符串
+			elem.setAttribute( name, value + "" );
+			return value;
+		}
+
+	//这个好像一般都不会满足
+	} else if ( hooks && "get" in hooks && (ret = hooks.get( elem, name )) !== null ) {
+		return ret;
+
+	} else {
+		//Sizzle里的方法
+		ret = jQuery.find.attr( elem, name );
+
+		// Non-existent attributes return null, we normalize to undefined
+		return ret == null ?
+			undefined :
+			ret;
+	}
+},
+
+
+//[4159]
+attrHooks: {
+    type: {
+	//这里是对设置radio元素的type属性做兼容性处理
+        set: function( elem, value ) {
+            if ( !jQuery.support.radioValue && value === "radio" && jQuery.nodeName(elem, "input") ) {
+                // Setting the type on a radio button after the value resets the value in IE6-9
+                // Reset value to default in case type is set after value during creation
+                var val = elem.value;
+                elem.setAttribute( "type", value );
+                if ( val ) {
+                    elem.value = val;
+                }
+                return value;
+            }
+        }
+    }
+},
+
+// Hooks for boolean attributes
+// 使$().attr("checked",true)这样的方法也可以使用
+// 即第二个参数是boolean值也可以正确处理
+boolHook = {
+	set: function( elem, value, name ) {
+		if ( value === false ) {
+			// Remove boolean attributes when set to false
+			// 参数为false时移除属性
+			jQuery.removeAttr( elem, name );
+		} else {
+			//参数为true时设置属性的值为属性
+			elem.setAttribute( name, name );
+		}
+		return name;
+	}
+};
+
+```
+
+
+>内容解析
+
+（一）设置布尔值属性时可以使用布尔值参数
+
+
+``` javascript
+
+//设置元素的默认属性
+var $input = $("#radio");
+$input.attr("checked","checked");
+$input.attr("checked",true);	//
+$input.attr("checked",false);	//可以
+
+//原生方法设置
+var input = document.getElementById("radio");
+input.setAttribute("checked",true);
+input.setAttribute("checked",false);	//这样是不能取消被选中的状态
+
+```
