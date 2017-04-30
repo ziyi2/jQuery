@@ -6596,7 +6596,10 @@ $.extend({
 
 >内容解析
 
-例如`attr`和`prop`方法的区别
+`attr`和`prop`方法的区别(有些HTML属性其实也是element对象的属性，但是element对象的属性并不一定是HTML的属性，所以容易产生混淆)
+
+- `attr`方法是设置HTML属性
+- `prop`方法是设置element对象的属性
 
 ``` javascript
 //设置元素的默认属性
@@ -6615,8 +6618,10 @@ console.log($div.attr("ziyi2"));	//undefined
 
 
 
-### 12.1 `$().attr()`和`$.attr()`
+### 12.1 `attr()`
 
+
+>源码
 
 ``` javascript
 
@@ -6764,5 +6769,361 @@ $input.attr("type","radio");		//其实是做了兼容性处理，这里需要先
 
 - 可以获取和设置非标准的HTML属性,该方法的属性名不区分大小写
 
+
+### 12.2 `removeAttr()`
+
+
+>源码
+
+``` javascript
+//[3809] $().removeAttr()
+removeAttr: function( name ) {
+    return this.each(function() {
+        jQuery.removeAttr( this, name );
+    });
+},
+
+//[4139] $.removeAttr()
+removeAttr: function( elem, value ) {
+    var name, propName,
+        i = 0,
+        attrNames = value && value.match( core_rnotwhite );
+
+    //第一个参数必须是element对象	 
+    if ( attrNames && elem.nodeType === 1 ) {
+        while ( (name = attrNames[i++]) ) {
+            propName = jQuery.propFix[ name ] || name;
+
+            // Boolean attributes get special treatment (#10870)
+            if ( jQuery.expr.match.bool.test( name ) ) {
+                // Set corresponding property to false
+		// 布尔值的属性需要设置为false
+                elem[ propName ] = false;
+            }
+		
+	    //原生方法删除属性	
+            elem.removeAttribute( name );
+        }
+    }
+},
+
+//兼容性，for和class本身是关键字	
+propFix: {
+    "for": "htmlFor",
+    "class": "className"
+},	
+
+```
+	
+	
+>内容解析
+
+
+(一) 删除多个属性
+
+
+``` javascript
+var $input = $("#radio");
+$input.removeAttr("id class checked");	//删除多个属性
+
+$input[0].checked = true;
+$input[0].removeAttribute("checked");	//element的属性checked仍然为false
+
+```
+
+(二) 匹配多个空格
+
+``` javascript
+var pattern = /\S+/g
+    , str = "a b c d e f"
+    , strArr = str.match(pattern);
+
+console.log(strArr); //['a','b','c','d','e','f']
+```
+
+
+
+### 12.3 `prop()`
+
+
+> 源码
+
+``` javascript
+//[3815] $().removeAttr()
+prop: function( name, value ) {
+    return jQuery.access( this, jQuery.prop, name, value, arguments.length > 1 );
+},
+
+
+
+// $.
+propFix: {
+    "for": "htmlFor",
+    "class": "className"
+},
+
+prop: function( elem, name, value ) {
+    var ret, hooks, notxml,
+        nType = elem.nodeType;
+
+    // don't get/set properties on text, comment and attribute nodes
+    if ( !elem || nType === 3 || nType === 8 || nType === 2 ) {
+        return;
+    }
+
+    notxml = nType !== 1 || !jQuery.isXMLDoc( elem );
+
+    // 如果不是xml，则可能有兼容性问题需要处理	
+    if ( notxml ) {
+        // Fix name and attach hooks
+        name = jQuery.propFix[ name ] || name;
+        hooks = jQuery.propHooks[ name ];
+    }
+
+    // 设置值
+    if ( value !== undefined ) {
+        return hooks && "set" in hooks && (ret = hooks.set( elem, value, name )) !== undefined ?
+            ret :
+            //设置的其实是element对象属性
+            ( elem[ name ] = value );
+
+    // 获取值
+    } else {
+        return hooks && "get" in hooks && (ret = hooks.get( elem, name )) !== null ?
+            ret :
+            elem[ name ];
+    }
+},
+
+
+propHooks: {
+    //tabIndex具有兼容性问题
+    tabIndex: {
+        get: function( elem ) {
+            return elem.hasAttribute( "tabindex" ) || rfocusable.test( elem.nodeName ) || elem.href ?
+                elem.tabIndex :
+                -1;
+        }
+    }
+}
+```
+
+
+
+
+> 内容解析
+
+
+``` javascript
+var input = $("#radio");
+input.prop('ziyi2',"ziyi2");
+console.log(input.prop('ziyi2'));	//ziyi2
+```
+
+### 12.5 `addClass()`
+
+
+>源码
+
+``` javascript
+addClass: function( value ) {
+    var classes, elem, cur, clazz, j,
+        i = 0,
+        len = this.length,
+        proceed = typeof value === "string" && value;
+
+    // 如果参数是函数，则函数的参数是this的index和对应的className
+    if ( jQuery.isFunction( value ) ) {
+        return this.each(function( j ) {
+            jQuery( this ).addClass( value.call( this, j, this.className ) );
+        });
+    }
+
+    if ( proceed ) {
+        // The disjunction here is for better compressibility (see removeClass)
+	// value转换成数组
+        classes = ( value || "" ).match( core_rnotwhite ) || [];
+
+        for ( ; i < len; i++ ) {
+            elem = this[ i ];
+	    // rclass = /[\t\r\n\f]/g, 制表符 换行符 回车符等
+	    // 将html中元素的class的值的制表符等转换为空字符
+            cur = elem.nodeType === 1 && ( elem.className ?
+                ( " " + elem.className + " " ).replace( rclass, " " ) :
+                " "
+            );
+
+            if ( cur ) {
+                j = 0;
+                while ( (clazz = classes[j++]) ) {
+		    // 如果html的class中没有需要设置的class
+                    if ( cur.indexOf( " " + clazz + " " ) < 0 ) {
+                        cur += clazz + " ";
+                    }
+                }
+		//去掉之前加上的两边的空格
+                elem.className = jQuery.trim( cur );
+
+            }
+        }
+    }
+
+    return this;
+},
+```
+
+>内容解析
+
+``` javascript
+<div id="div" class="box
+	box1		box3"></div>	<!-- 有换行和Tab键-->
+<script src="Jquery2.0.3.js"></script>
+<script>
+    var $div = $("#div");
+    div.addClass("box		box1 box2 box4" );	
+    $div.addClass(function(index, className) {	//适合多个元素时利用index设置class
+	//indexOf如果找到了则返回找到的位置
+	if(className.indexOf('box4') > -1) {
+		return "box5";
+	}
+    });
+</script>
+```
+
+### 12.6 `removeClass()`
+
+
+
+>源码
+
+``` javascript
+removeClass: function( value ) {
+    var classes, elem, cur, clazz, j,
+        i = 0,
+        len = this.length,
+	//详见（一）
+        proceed = arguments.length === 0 || typeof value === "string" && value;
+
+    if ( jQuery.isFunction( value ) ) {
+        return this.each(function( j ) {
+            jQuery( this ).removeClass( value.call( this, j, this.className ) );
+        });
+    }
+    if ( proceed ) {
+        classes = ( value || "" ).match( core_rnotwhite ) || [];
+
+        for ( ; i < len; i++ ) {
+            elem = this[ i ];
+            // This expression is here for better compressibility (see addClass)
+            cur = elem.nodeType === 1 && ( elem.className ?
+                ( " " + elem.className + " " ).replace( rclass, " " ) :
+                ""
+            );
+
+            if ( cur ) {
+                j = 0;
+                while ( (clazz = classes[j++]) ) {
+                    // Remove *all* instances
+                    while ( cur.indexOf( " " + clazz + " " ) >= 0 ) {
+                        cur = cur.replace( " " + clazz + " ", " " );
+                    }
+                }
+		//如果value不存在，则去掉所有的class
+                elem.className = value ? jQuery.trim( cur ) : "";
+            }
+        }
+    }
+
+    return this;
+},
+```
+
+>内容解析
+
+
+(一) 优先级
+
+``` javascript
+console.log(1 || 0 && 2);	//1, 如果是||优先级高，则返回2，否则返回1,说明&&优先级高
+$("#div").removeClass();
+console.log($("div")[0].className);	//''
+```
+
+
+### 12.7 `toggleClass()`
+
+>源码
+
+``` javascript
+toggleClass: function( value, stateVal ) {
+    var type = typeof value;
+
+    //如果存在第二参数且是布尔值，则功能类似于addClass和removeClass
+    if ( typeof stateVal === "boolean" && type === "string" ) {
+        return stateVal ? this.addClass( value ) : this.removeClass( value );
+    }
+
+    //同样支持回调函数
+    if ( jQuery.isFunction( value ) ) {
+        return this.each(function( i ) {
+            jQuery( this ).toggleClass( value.call(this, i, this.className, stateVal), stateVal );
+        });
+    }
+
+    return this.each(function() {
+        if ( type === "string" ) {
+            // toggle individual class names
+            var className,
+                i = 0,
+		//需要注意前面是this.each，所以这里的this并不指代$(),而是指示具体的元素
+		//jQuery（this）就是获取了实例对象，所以才可以调用实例对象的方法
+                self = jQuery( this ),
+                classNames = value.match( core_rnotwhite ) || [];
+
+            while ( (className = classNames[ i++ ]) ) {
+                // check each className given, space separated list
+		//如果有class
+                if ( self.hasClass( className ) ) {
+                    self.removeClass( className );
+                } else {
+                    self.addClass( className );
+                }
+            }
+
+        // Toggle whole class name
+	// 如果第一参数不存在或者是布尔值，则是反转所有的className,其实是通过data方法将之前的class全部缓存起来
+        } else if ( type === core_strundefined || type === "boolean" ) {
+            if ( this.className ) {
+                // store className if set
+                data_priv.set( this, "__className__", this.className );
+            }
+
+            // If the element has a class name or if we're passed "false",
+            // then remove the whole classname (if there was one, the above saved it).
+            // Otherwise bring back whatever was previously saved (if anything),
+            // falling back to the empty string if nothing was stored.
+            this.className = this.className || value === false ? "" : data_priv.get( this, "__className__" ) || "";
+        }
+    });
+},
+```
+
+### 12.8 `hasClass()`
+
+``` javascript
+hasClass: function( selector ) {
+    var className = " " + selector + " ",
+        i = 0,
+        l = this.length;
+    for ( ; i < l; i++ ) {
+        if ( this[i].nodeType === 1 && (" " + this[i].className + " ").replace(rclass, " ").indexOf( className ) >= 0 ) {
+            return true;
+        }
+    }
+
+    return false;
+},
+
+```
 
 
