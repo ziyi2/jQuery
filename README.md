@@ -6919,6 +6919,17 @@ var input = $("#radio");
 input.prop('ziyi2',"ziyi2");
 console.log(input.prop('ziyi2'));	//ziyi2
 ```
+### 12.4 `prop()`
+
+>源码
+
+``` javascript
+removeProp: function( name ) {
+    return this.each(function() {
+        delete this[ jQuery.propFix[ name ] || name ];
+    });
+},
+```
 
 ### 12.5 `addClass()`
 
