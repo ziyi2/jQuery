@@ -6564,7 +6564,7 @@ $('#div1').promise().done(function() {
 ```
 
 
-## 元素属性
+## 12.元素属性
 
 ``` javascript
 
@@ -6615,7 +6615,7 @@ console.log($div.attr("ziyi2"));	//undefined
 
 
 
-### `$().attr()`和`$.attr()`
+### 12.1 `$().attr()`和`$.attr()`
 
 
 ``` javascript
@@ -6640,7 +6640,7 @@ attr: function( elem, name, value ) {
 	}
 
 	// Fallback to prop when attributes are not supported
-	// 如果getAttribute方法存在，例如console.log(document.getAttribute)  //undefined
+	// 如果getAttribute方法不存在，例如console.log(document.getAttribute)  //undefined
 	if ( typeof elem.getAttribute === core_strundefined ) {
 		// 那就调用prop方法设置属性，prop方法本质上设置对象的属性操作，使用.或[]方法
 		return jQuery.prop( elem, name, value );
@@ -6654,7 +6654,7 @@ attr: function( elem, name, value ) {
 		//如果设置的是type属性，则走jQuery.attrHooks[ name ]
 		//否则匹配这些属性[/^(?:checked|selected|async|autofocus|autoplay|controls|defer|disabled|hidden|ismap|loop|multiple|open|readonly|required|scoped)$/i]
 		//走boolHook函数,因为这些属性都应该可以通过布尔值进行设置
-		//如果还没有这些属性,那就走nodeHook其实是undefined
+		//如果是其他的属性（例如自定义属性）,那就走nodeHook其实是undefined
 		hooks = jQuery.attrHooks[ name ] ||
 			( jQuery.expr.match.bool.test( name ) ? boolHook : nodeHook );
 	}
@@ -6670,6 +6670,7 @@ attr: function( elem, name, value ) {
 
 		} else {
 			//可能value不是字符串，则转化为字符串
+			//如果是普通自定义元素，就用原生方法设置
 			elem.setAttribute( name, value + "" );
 			return value;
 		}
@@ -6720,6 +6721,7 @@ boolHook = {
 			jQuery.removeAttr( elem, name );
 		} else {
 			//参数为true时设置属性的值为属性
+			//详见（二）
 			elem.setAttribute( name, name );
 		}
 		return name;
@@ -6747,4 +6749,20 @@ var input = document.getElementById("radio");
 input.setAttribute("checked",true);
 input.setAttribute("checked",false);	//这样是不能取消被选中的状态
 
+
+//设置元素的默认属性
+var $input = $("#radio");
+$input.attr("checked",true);
+console.log($input.attr("checked"));	//checked
+$input.attr("type","radio");		//其实是做了兼容性处理，这里需要先设置type属性，然后获取元素的value值并重新设置value的值
+
 ```
+
+
+
+（二）`element.setAttribute`
+
+- 可以获取和设置非标准的HTML属性,该方法的属性名不区分大小写
+
+
+
