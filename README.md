@@ -6919,7 +6919,7 @@ var input = $("#radio");
 input.prop('ziyi2',"ziyi2");
 console.log(input.prop('ziyi2'));	//ziyi2
 ```
-### 12.4 `prop()`
+### 12.4 `removeProp()`
 
 >源码
 
@@ -7136,5 +7136,237 @@ hasClass: function( selector ) {
 },
 
 ```
+
+
+### 12.9 `val()`
+
+
+>源码
+
+
+``` javascript
+val: function( value ) {
+    var hooks, ret, isFunction,
+        elem = this[0];
+
+    //没有参数就是获取值
+    if ( !arguments.length ) {
+        if ( elem ) {
+	    //对于select元素，elem.type=select-one/select-multiple,因此要使用elem.nodeName.toLowerCase()来获取select属性
+            hooks = jQuery.valHooks[ elem.type ] || jQuery.valHooks[ elem.nodeName.toLowerCase() ];
+
+	    //select/option/checkbox具有get属性
+            if ( hooks && "get" in hooks && (ret = hooks.get( elem, "value" )) !== undefined ) {
+                return ret;
+            }
+
+	    //对于普通的text texterea元素就会直接获取value属性值
+            ret = elem.value;
+
+            return typeof ret === "string" ?
+                // handle most common string cases
+                ret.replace(rreturn, "") :
+                // handle cases where value is null/undef or number
+                ret == null ? "" : ret;
+        }
+
+        return;
+    }
+
+    isFunction = jQuery.isFunction( value );
+
+    return this.each(function( i ) {
+        var val;
+
+        if ( this.nodeType !== 1 ) {
+            return;
+        }
+
+        if ( isFunction ) {
+            val = value.call( this, i, jQuery( this ).val() );
+        } else {
+            val = value;
+        }
+
+        // Treat null/undefined as ""; convert numbers to string
+        if ( val == null ) {
+            val = "";
+        } else if ( typeof val === "number" ) {
+            val += "";
+        } else if ( jQuery.isArray( val ) ) {
+            val = jQuery.map(val, function ( value ) {
+                return value == null ? "" : value + "";
+            });
+        }
+
+        hooks = jQuery.valHooks[ this.type ] || jQuery.valHooks[ this.nodeName.toLowerCase() ];
+
+        // If set returns undefined, fall back to normal setting
+        if ( !hooks || !("set" in hooks) || hooks.set( this, val, "value" ) === undefined ) {
+            this.value = val;
+        }
+    });
+}
+
+
+valHooks: {
+ option: {
+      get: function( elem ) {
+          // attributes.value is undefined in Blackberry 4.7 but
+          // uses .value. See #6932
+	  // elem.attributes 是元素的所有属性的集合
+          // 判断value属性是不是存在		
+          var val = elem.attributes.value;
+	  // val.specified 判断value属性是否指定了值，如果指定了值则返回指定值，否则返回元素的text文本
+          return !val || val.specified ? elem.value : elem.text;
+      }
+  },
+  select: {
+      get: function( elem ) {
+          var value, option,
+	      //获取select元素的所有option
+              options = elem.options,
+              //获取选中元素的索引值，多选时是所有被选中元素的最小索引值
+              index = elem.selectedIndex,
+              //判断select的类型是单选还是多选
+              one = elem.type === "select-one" || index < 0,
+              //单选返回单个值，多选返回数组
+              values = one ? null : [],
+              //要遍历的最大值，其实单选可以不写，这里是为了让单选和多选做代码统一
+              max = one ? index + 1 : options.length,
+	      //单选的时候i = index
+	      //多选时i = 0
+              i = index < 0 ?
+                  max :
+                  one ? index : 0;
+
+          // Loop through all the selected options
+	  // 单选只会遍历一次，从i开始到i+1结束
+          for ( ; i < max; i++ ) {
+              option = options[ i ];
+
+              // IE6-9 doesn't update selected after form reset (#2551)
+              if ( ( option.selected || i === index ) &&
+                      // Don't return options that are disabled or in a disabled optgroup
+                      ( jQuery.support.optDisabled ? !option.disabled : option.getAttribute("disabled") === null ) &&
+                      ( !option.parentNode.disabled || !jQuery.nodeName( option.parentNode, "optgroup" ) ) ) {
+
+                  // Get the specific value for the option
+		  // 获取选中的单选元素的值
+                  value = jQuery( option ).val();
+
+                  // We don't need an array for one selects
+                  if ( one ) {
+                      return value;
+                  }
+
+                  // Multi-Selects return an array
+                  values.push( value );
+              }
+          }
+
+          return values;
+      },
+
+      set: function( elem, value ) {
+          var optionSet, option,
+              options = elem.options,
+              values = jQuery.makeArray( value ),
+              i = options.length;
+
+          while ( i-- ) {
+              option = options[ i ];
+              if ( (option.selected = jQuery.inArray( jQuery(option).val(), values ) >= 0) ) {
+                  optionSet = true;
+              }
+          }
+
+          // force browsers to behave consistently when non-matching value is set
+          if ( !optionSet ) {
+              elem.selectedIndex = -1;
+          }
+          return values;
+      }
+  }
+},
+
+
+// Radios and checkboxes getter/setter
+jQuery.each([ "radio", "checkbox" ], function() {
+	jQuery.valHooks[ this ] = {
+		set: function( elem, value ) {
+			if ( jQuery.isArray( value ) ) {
+				return ( elem.checked = jQuery.inArray( jQuery(elem).val(), value ) >= 0 );
+			}
+		}
+	};
+	if ( !jQuery.support.checkOn ) {
+		jQuery.valHooks[ this ].get = function( elem ) {
+			// Support: Webkit
+			// "" is returned instead of "on" if a value isn't specified
+			return elem.getAttribute("value") === null ? "on" : elem.value;
+		};
+	}
+});
+
+```
+
+>内容解析
+
+
+``` javascript
+
+//1. 普通元素
+var $text = $("#text");
+$text.val('ziyi2');			//类似于$text[0].value = 'ziyi2';
+console.log($text.val());	//ziyi2
+
+
+//2. option元素
+/**
+ * <select id="select">
+        <option>1</option>
+        <option selected value="value_1">2</option>
+        <option>value_2</option>
+    </select>
+ */
+var $option = $('option');
+//原生写法
+console.log($option.eq(0).get(0).value);	//1
+console.log($option.eq(1).get(0).value);	//value_1
+console.log($option.eq(2).get(0).value);	//value_2
+
+//jquery写法
+console.log($option.eq(0).val());			//1
+console.log($option.eq(1).val());			//value_1 如果value = ""， 则返回""
+
+
+
+//3. select单选元素，option当有value属性时获取value属性值，否则获取元素文本内容
+
+/**
+ * <select id="select">
+        <option>1</option>
+        <option value="value_1">2</option>
+        <option>value_2</option>
+    </select>
+ */
+console.log($('select').eq(0).get(0).type);	//select-one
+console.log($('select').eq(0).val());		//1 默认第一个元素是选中的
+
+
+//4. select多选元素
+/**
+ * <select id="select" multiple>
+        <option>1</option>
+        <option selected>2</option>
+        <option selected value="value_3">3</option>
+    </select>
+ */
+var $select = $('select').eq(1);			//select-multiple
+console.log($select.get(0).type);
+console.log($select.val());					//返回的是数组 ['2','value_3']
+```
+
 
 
