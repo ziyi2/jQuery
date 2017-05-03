@@ -6787,7 +6787,8 @@ removeAttr: function( name ) {
 removeAttr: function( elem, value ) {
     var name, propName,
         i = 0,
-        attrNames = value && value.match( core_rnotwhite );
+	//详见(二)
+        attrNames = value && value.match( core_rnotwhite );
 
     //第一个参数必须是element对象	 
     if ( attrNames && elem.nodeType === 1 ) {
@@ -6849,7 +6850,7 @@ console.log(strArr); //['a','b','c','d','e','f']
 > 源码
 
 ``` javascript
-//[3815] $().removeAttr()
+//[3815] $().prop()
 prop: function( name, value ) {
     return jQuery.access( this, jQuery.prop, name, value, arguments.length > 1 );
 },
