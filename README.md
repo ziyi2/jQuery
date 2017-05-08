@@ -6788,7 +6788,7 @@ removeAttr: function( elem, value ) {
     var name, propName,
         i = 0,
 	//详见(二)
-        attrNames = value && value.match( core_rnotwhite );
+        attrNames = value && value.match( core_rnotwhite );
 
     //第一个参数必须是element对象	 
     if ( attrNames && elem.nodeType === 1 ) {
@@ -7370,4 +7370,76 @@ console.log($select.val());					//返回的是数组 ['2','value_3']
 ```
 
 
+## 13. 事件操作
+
+
+``` javascript
+//[4324]
+jQuery.event = {
+	global
+	// add remove trigger 重点
+	add
+	remove
+	trigger
+	// 后面是前面三个的辅助
+	dispatch
+	handlers
+	props
+	fixHooks
+	keyHooks
+	mouseHooks
+	fix
+	special
+	simulate
+}
+
+//构造函数
+jQuery.Event = function( src, props ) {
+}
+
+jQuery.Event.prototype = {
+	isDefaultPrevented
+	isPropagationStopped
+	isImmediatePropagationStopped
+	preventDefault
+	stopPropagation
+	stopImmediatePropagation
+}
+
+
+jQuery.fn.extend({
+	//调用$.event.add
+	on
+	//one调用on
+	one
+	//调用$.event.remove
+	off
+	//调用$.event.trigger
+	trigger
+	triggerHandler
+})
+
+// [6720] 调用$().on $().trigger
+jQuery.each( ("blur focus focusin focusout load resize scroll unload click dblclick " +
+	"mousedown mouseup mousemove mouseover mouseout mouseenter mouseleave " +
+	"change select submit keydown keypress keyup error contextmenu").split(" "), function( i, name ) {
+
+	// Handle event binding
+	jQuery.fn[ name ] = function( data, fn ) {
+		return arguments.length > 0 ?
+			this.on( name, null, data, fn ) :
+			this.trigger( name );
+	};
+});
+
+// 调用$.fn.extend({on off trigger})
+jQuery.fn.extend({
+	hover
+	bind
+	unbind
+	delegate
+	undelegate
+})
+
+```
 
