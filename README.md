@@ -7442,5 +7442,180 @@ jQuery.fn.extend({
 }
 ```
 
-## 13.1 `$().on()`
+## 13.1 事件`jQuery.fn.extend`
+
+这里的`jQuery.fn.extend`主要调用`jQuery.event`对象的方法
+
+
+``` javascript
+jQuery.fn.extend({
+	//调用$.event.add()
+	on
+	//one调用$().on()
+	one
+	//调用$.event.remove()
+	off
+	//调用$.event.trigger()
+	trigger
+	//调用$.event.trigger()
+	triggerHandler
+})
+
+jQuery.fn.extend({
+	
+	hover
+	//调用$().on()
+	bind
+	//调用$().off()
+	unbind
+	//调用$().on()
+	delegate
+	//调用$().off()
+	undelegate
+}
+```
+
+## 13.1.1 `$().on()`
+
+>源码
+``` javascript
+jQuery.fn.extend({
+	//[5028]
+	on: function( types, selector, data, fn, /*INTERNAL*/ one ) {
+		var origFn, type;
+
+		// Types can be a map of types/handlers
+		// $().on({'click': function(){}, 'mouseover': function(){}} )
+		// 详见(二)
+		if ( typeof types === "object" ) {
+			// ( types-Object, selector, data )
+			if ( typeof selector !== "string" ) {
+				// ( types-Object, data )
+				data = data || selector;
+				selector = undefined;
+			}
+			// 仍然拆分成this.on执行 
+			for ( type in types ) {
+				this.on( type, selector, data, types[ type ], one );
+			}
+			return this;
+		}
+
+		// 详见(一) 对不同参数进行处理, 两个参数情况
+		if ( data == null && fn == null ) {
+			// ( types, fn )
+			fn = selector;
+			data = selector = undefined;
+		// 三个参数情况	
+		} else if ( fn == null ) {
+			if ( typeof selector === "string" ) {
+				// ( types, selector, fn )
+				fn = data;
+				data = undefined;
+			} else {
+				// ( types, data, fn )
+				fn = data;
+				data = selector;
+				selector = undefined;
+			}
+		}
+		if ( fn === false ) {
+			fn = returnFalse;
+		} else if ( !fn ) {
+			return this;
+		}
+
+		// 针对$.fn.extend中的one方法,只执行一次 $().one('click',function(){})
+		if ( one === 1 ) {
+			origFn = fn;
+			fn = function( event ) {
+				// Can use an empty set, since event contains the info
+				// 取消事件操作
+				jQuery().off( event );  //jQuery() = jQuery(this)
+				// 执行事件handler
+				return origFn.apply( this, arguments );
+			};
+			// Use same guid so caller can remove using origFn
+			// guid 绑定事件的唯一标识 
+			fn.guid = origFn.guid || ( origFn.guid = jQuery.guid++ );
+		}
+		// 针对$(),可能是多个元素,进行循环操作
+		return this.each( function() {
+			// on最终调用$.event.add方法
+			jQuery.event.add( this, types, fn, data, selector );
+		});
+	},
+})
+```
+>内容解析
+
+(一) 使用案例
+
+``` javascript
+//html
+<ul>
+    <li>1</li>
+    <li>2</li>
+    <li>3</li>
+    <li>4</li>
+</ul>
+
+//1. 2个参数情况
+$('ul').on('click',function() {
+   alert(1);
+});
+
+//2. 3个参数情况(data可以传递参数到内部)
+$('ul').on('click',{name: 'ziyi2'},function(e) {
+    alert(e.data.name); //ziyi2
+});
+
+//3. 3个参数情况(事件委托,其实是ul监听click事件)
+$('ul').on('click','li',function() {
+    $(this).css('background','red');
+})
+
+//4. 4个参数情况(事件委托+data传递参数)
+$('ul').on('click','li',{name:'ziyi2'},function(e){
+   $(this).html(e.data.name)
+});
+```
+
+
+(二) 传入的参数是`obj`
+
+``` javascript
+$('ul').on({
+	'click': function(){
+	}, 
+	'mouseover': function(){
+	}	
+})
+```
+
+
+## 13.1.2 `$().one()`
+## 13.1.3 `$().off()`
+## 13.1.4 `$().trigger()`
+
+>内容解析
+
+``` javascript
+
+<input type="text" id="input">
+
+$('#input').focus(function() {
+   $(this).css('background','red');
+});
+$('#input').trigger('focus');		//主动触发focus事件,光标自动定位到input
+```
+
+## 13.1.5 `$().triggerHandler()`
+
+``` javascript
+$('#input').focus(function() {
+   $(this).css('background','red');
+});
+$('#input').triggerHandler('focus');		//主动触发focus事件,光标不会定位(不会触发当前事件的默认行为)
+```
 
