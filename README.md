@@ -7617,5 +7617,6 @@ $('#input').focus(function() {
    $(this).css('background','red');
 });
 $('#input').triggerHandler('focus');		//主动触发focus事件,光标不会定位(不会触发当前事件的默认行为)
+
 ```
 
