@@ -1,4 +1,4 @@
-﻿
+
 ## 0.了解jQuery的这些属性和方法么？
 
 >注意:  本版本jQuery只支持IE9以上的浏览器
@@ -7439,9 +7439,8 @@ jQuery.fn.extend({
 	unbind
 	delegate
 	undelegate
-})
-
-
-
+}
 ```
+
+## 13.1 `$().on()`
 
