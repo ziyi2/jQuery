@@ -7442,6 +7442,82 @@ jQuery.fn.extend({
 }
 ```
 
+>内容解析
+
+(一) `$().on()`/`$().trigger()`/`$().off()`
+
+``` javascript
+
+//非自定义事件
+var $input = $('#input');
+
+$input.on('click',function() {
+   alert(1);
+});  
+
+$input.trigger('focus');    //触发了默认的focus效果
+$input.trigger('click');    //触发了click事件,alert(1)
+
+//自定义事件
+$input.on('show',function() {
+    alert(2);
+});
+
+$input.on('show',function() {
+	alert(3);
+    $input.off('show');     //取消监听
+});
+
+$input.trigger('show');     //alert(1)/alert(2)
+$input.trigger('show');     //不会触发
+```
+
+(二) 模拟实现
+
+``` javascript
+function Event() {}
+
+Event.prototype.on = function(elem,type,handler) {
+    elem.listeners = elem.listeners || {};
+    elem.listeners[type] = elem.listeners[type] || [];
+    elem.listeners[type].push(handler);
+    elem.addEventListener(type,handler,false);   //false是冒泡机制
+};
+
+Event.prototype.off = function(elem,type,handler) {
+    elem.removeEventListener(type,handler,false);
+    delete elem.listeners[type];
+};
+
+Event.prototype.trigger = function(elem,type) {
+    var listeners = elem.listeners[type] || [];
+    for(var i=0,len=listeners.length; i<len; i++) {
+        listeners[i]()
+    }
+};
+
+var input = document.getElementById('input');
+
+function fn1() {
+    alert(1);
+}
+
+function fn2() {
+    alert(2);
+}
+
+//非自定义事件
+var event = new Event();
+event.on(input,'click',fn1);   //添加
+event.off(input,'click',fn1);  //取消添加
+event.on(input,'click',fn1);   //只触发fn1一次
+
+//自定义事件
+event.on(input,'show',fn2);
+event.trigger(input,'show');
+```
+
+
 ## 13.1 事件`jQuery.fn.extend`
 
 这里的`jQuery.fn.extend`主要调用`jQuery.event`对象的方法
@@ -7617,5 +7693,7 @@ $('#input').focus(function() {
    $(this).css('background','red');
 });
 $('#input').triggerHandler('focus');		//主动触发focus事件,光标不会定位(不会触发当前事件的默认行为)
+
 ```
+
 
