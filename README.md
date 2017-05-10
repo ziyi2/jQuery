@@ -23,12 +23,43 @@
  $().map()                            # 遍历集合并返回新集合(使用了堆栈方法)
  $().push()                           # 内部增加性能使用(不建议对外)
  $().sort()                           # 内部增加性能使用(不建议对外)
- $().splice()                         # 内部增加性能使用(不建议对外)
+ $().slice()                         # 内部增加性能使用(不建议对外)
  $(function(){})                      # DOM加载
 
+ $().data()
+ $().removeData()
+
+ $().queue()
+ $().dequeue()
+ $().delay()
+ $().clearQueue()
+ $().promise()
+
+ $().attr()
+ $().removeAttr()
+ $().prop()
+ $().removeProp()
+ $().addClass()
+ $().removeClass()
+ $().toggleClass()
+ $().hasClass()
+ $().val()
+
+ $().on()
+ $().off()
+ $().trigger()
+ $().one()
+ $(),triggerHandler()
+ $().hover()
+ $().bind()
+ $().unbind()
+ $().delegate()
+ $().undelegate()
+
+ 
 
  /*扩展对象*/
- $.fn.extend()
+ $().extend()
  $.extend()                           # 扩展jQuery静态方法\实例方法以及扩展自定义对象的方法
 
 
@@ -64,6 +95,24 @@
  $.access()                           # 多函数工具方法(内部)
  $.now()                              # 获取当前时间的毫秒数
  $.swap()                             # 交换css样式
+ 
+ $.Callbacks()			      # 回调对象
+
+ $.Differed()                         # 延迟对象
+ $.when()                             # 延迟辅助函数
+
+ $.acceptData()
+ $.hasData()
+ $.data()
+ $.removeData()
+
+ $.queue()
+ $.dequeue()
+ 
+
+
+
+
 ```
 
 
