@@ -4433,6 +4433,8 @@ jQuery.event = {
 
 		// Nullify elem to prevent memory leaks in IE
 		elem = null;
+
+		console.log(elemData);
 	},
 
 	// Detach an event or set of events from an element

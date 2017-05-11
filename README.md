@@ -23,43 +23,12 @@
  $().map()                            # 遍历集合并返回新集合(使用了堆栈方法)
  $().push()                           # 内部增加性能使用(不建议对外)
  $().sort()                           # 内部增加性能使用(不建议对外)
- $().slice()                         # 内部增加性能使用(不建议对外)
+ $().splice()                         # 内部增加性能使用(不建议对外)
  $(function(){})                      # DOM加载
 
- $().data()
- $().removeData()
-
- $().queue()
- $().dequeue()
- $().delay()
- $().clearQueue()
- $().promise()
-
- $().attr()
- $().removeAttr()
- $().prop()
- $().removeProp()
- $().addClass()
- $().removeClass()
- $().toggleClass()
- $().hasClass()
- $().val()
-
- $().on()
- $().off()
- $().trigger()
- $().one()
- $(),triggerHandler()
- $().hover()
- $().bind()
- $().unbind()
- $().delegate()
- $().undelegate()
-
- 
 
  /*扩展对象*/
- $().extend()
+ $.fn.extend()
  $.extend()                           # 扩展jQuery静态方法\实例方法以及扩展自定义对象的方法
 
 
@@ -95,24 +64,6 @@
  $.access()                           # 多函数工具方法(内部)
  $.now()                              # 获取当前时间的毫秒数
  $.swap()                             # 交换css样式
- 
- $.Callbacks()			      # 回调对象
-
- $.Differed()                         # 延迟对象
- $.when()                             # 延迟辅助函数
-
- $.acceptData()
- $.hasData()
- $.data()
- $.removeData()
-
- $.queue()
- $.dequeue()
- 
-
-
-
-
 ```
 
 
@@ -7567,6 +7518,94 @@ event.trigger(input,'show');
 ```
 
 
+(三) `data`缓存
+
+```
+
+$(function(){
+    $('#div1').on('click',function(a) {
+        console.log('click div');
+    });
+
+    $('#div1').on('click','span',function(b) {
+        console.log('click span');
+    });
+
+    $('#div1').on('mouseover.ziyi2',function(c) {
+        console.log('mouserover');
+    });
+});
+
+/*
+
+[4328]
+$.event.add 底部 console.log(elemData);
+
+
+var elemData = {
+    events: {
+        'click': [                          //arr.length = 2 arr.delegateCount = 1 (委托计数值)
+            {
+                data: undefined,
+                guid: 2,                    //当前事件的唯一标识
+                handler: function(b) {},    //事件函数
+                namespace: "",              //命名空间
+                needsContext: false,        //委托人是否是伪类(span:last)
+                origType: "click",          //mouseenter(浏览器不支持会用mouseover模拟)
+                selector: "span",           //委托(委托会首先放到数组的前面)
+                type: "click"               //事件类型(模拟事件类型)
+            },
+            {
+                data: undefined,
+                guid: 1,
+                handler: function(a) {},
+                needsContext: undefined,
+                origType: "click",
+                selector: undefined,        //没有委托
+                type: "click"
+            }
+        ],
+
+        'mouserover': [                     //arr.length = 1 arr.delegateCount = 0 (委托计数值)
+            {
+                data: undefined,
+                guid: 3,                    //当前事件的唯一标识
+                handler: function(c) {},
+                namespace: "ziyi2",         //命名空间
+                needsContext: undefined,
+                origType: "mouseover",
+                selector: undefined,        //没有委托
+                type: "mouseover"
+            }
+        ]
+    },
+
+    handle: function(e) {                   //真正的事件函数
+
+    }
+};
+*/
+```
+
+
+(四) 命名空间
+
+``` javascript
+$('#div2').on('click.click1',function() {
+	alert(1);
+});
+
+$('#div2').on('click.click2',function() {
+    alert(2);
+});
+
+$('#div2').on('click',function() {
+    alert(3);
+});
+
+$('#div2').trigger('click.click1'); //1
+```
+
 ## 13.1 事件`jQuery.fn.extend`
 
 这里的`jQuery.fn.extend`主要调用`jQuery.event`对象的方法
@@ -7744,5 +7783,6 @@ $('#input').focus(function() {
 $('#input').triggerHandler('focus');		//主动触发focus事件,光标不会定位(不会触发当前事件的默认行为)
 
 ```
+
 
 
