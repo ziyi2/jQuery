@@ -7415,7 +7415,7 @@ jQuery.fn.extend({
 	triggerHandler
 })
 
-// [6720] jQuery实例对象的扩展, 调用$().on $().trigger
+/* [6720] jQuery实例对象的扩展, 调用$().on $().trigger */
 jQuery.each( ("blur focus focusin focusout load resize scroll unload click dblclick " +
 	"mousedown mouseup mousemove mouseover mouseout mouseenter mouseleave " +
 	"change select submit keydown keypress keyup error contextmenu").split(" "), function( i, name ) {
@@ -7428,7 +7428,7 @@ jQuery.each( ("blur focus focusin focusout load resize scroll unload click dblcl
 	};
 });
 
-// 调用$.fn.extend({on off trigger})
+/* jQuery实例对象的扩展 */
 jQuery.fn.extend({
 	hover
 	bind
@@ -7646,16 +7646,16 @@ $('#input').triggerHandler('focus');		//主动触发focus事件,光标不会定�
 ``` javascript
 //[4324]
 jQuery.event = {
-    global
+    global        //事件的全局属性(源码没用到)
     add           //绑定事件,主要是对事件的data缓存进行操作
     remove        //取消绑定事件
     trigger       //主动触发事件
     dispatch      //分发事件的具体操作 
     handlers      //函数执行顺序的操作
-    props
-    fixHooks
-    keyHooks
-    mouseHooks
+    props         //JQuery中的event属性共享原生JS的event属性
+    fixHooks      //收集event兼容的集合
+    keyHooks      //键盘的event兼容
+    mouseHooks    //鼠标的event兼容
     fix           //event对象的兼容处理
     special       //特殊事件的处理
     simulate
@@ -8006,3 +8006,299 @@ $(function(){
 //点击span元素, 打印顺序 1. click span 2. click1 3. click2
 //需要注意的是尽管$.event.add中已经在data缓存中把委托的放在最前面,但是如果同时委托多个.委托顺序则不会按照顺序执行.所以需要$.event.handlers函数进行执行顺序的处理 
 ```
+
+
+## 13.2.* `$.event.fix()`
+
+- `mouseHooks`
+- `keyHooks`
+
+>源码
+
+``` javascript 
+// Includes some event props shared by KeyEvent and MouseEvent
+// jquery的event属性共享原生js的event属性
+props: "altKey bubbles cancelable ctrlKey currentTarget eventPhase metaKey relatedTarget shiftKey target timeStamp view which".split(" "),
+
+fixHooks: {},
+
+keyHooks: {
+	props: "char charCode key keyCode".split(" "),
+	filter: function( event, original ) {
+
+		// Add which for key events
+		// which兼容性最差(低版本浏览器不支持)
+		// charCode其次
+		// keyCode最好
+		// 一步步降级做兼容性处理
+		if ( event.which == null ) {
+			event.which = original.charCode != null ? original.charCode : original.keyCode;
+		}
+
+		return event;
+	}
+},
+
+mouseHooks:
+	props: "button buttons clientX clientY offsetX offsetY pageX pageY screenX screenY toElement".split(" "),
+	//解决鼠标的兼容性的具体操作
+	//event: JQuery当中的event对象
+	//original: 原生的event对象
+	filter: function( event, original ) {
+		var eventDoc, doc, body,
+			button = original.button; //原生有button属性
+
+		// Calculate pageX/Y if missing and clientX/Y available
+		// pageX/pageY有兼容性 -> 距离页面顶端的距离
+		// clientX/clientY没有兼容性问题 -> 距离当前屏幕顶端(可视图区)的距离(屏幕会显示页面滚动之后的页面的某一部分)
+		// 如果浏览器没有pageX属性
+		if ( event.pageX == null && original.clientX != null ) {
+			eventDoc = event.target.ownerDocument || document;
+			doc = eventDoc.documentElement;
+			body = eventDoc.body;
+
+			//pageX = clientX + 滚动距离
+			event.pageX = original.clientX + ( doc && doc.scrollLeft || body && body.scrollLeft || 0 ) - ( doc && doc.clientLeft || body && body.clientLeft || 0 );
+			event.pageY = original.clientY + ( doc && doc.scrollTop  || body && body.scrollTop  || 0 ) - ( doc && doc.clientTop  || body && body.clientTop  || 0 );
+		}
+
+		// Add which for click: 1 === left; 2 === middle; 3 === right
+		// Note: button is not normalized, so don't use it
+		// which可以代表键盘的键值,也可以代表鼠标点击的左中右键
+		// 低版本支持button属性(识别鼠标的点击值)
+		// 详见(一)
+		if ( !event.which && button !== undefined ) {
+			event.which = ( button & 1 ? 1 : ( button & 2 ? 3 : ( button & 4 ? 2 : 0 ) ) );
+		}
+
+		return event;
+	}
+},
+
+fix: function( event ) {
+    //看有没有缓存,有缓存就不需要执行后面的了
+	if ( event[ jQuery.expando ] ) {
+		return event;
+	}
+
+	// Create a writable copy of the event object and normalize some properties
+	var i, prop, copy,
+		type = event.type,
+		/原生的event属性
+		originalEvent = event,
+		fixHook = this.fixHooks[ type ];
+	
+	//如果fixHook不存在,则继续判断是否要做兼容性处理
+	if ( !fixHook ) {
+		this.fixHooks[ type ] = fixHook =
+			//针对鼠标的兼容性处理
+			rmouseEvent.test( type ) ? this.mouseHooks :
+			//针对键盘的兼容性处理
+			rkeyEvent.test( type ) ? this.keyHooks :
+			{};
+	}
+	
+    //如果有需要做兼容性处理的prop属性,则放入copy,之后会加入jquery的event属性
+    //this.props在$.event.fix的上面
+	copy = fixHook.props ? this.props.concat( fixHook.props ) : this.props;
+
+	//面向对象的编程方法
+	//创建jQuery下的event对象,增强原生的event对象
+	event = new jQuery.Event( originalEvent );
+
+	//将原生event的prop属性赋值给jquery的event属性
+	i = copy.length;
+	while ( i-- ) {
+		prop = copy[ i ];
+		event[ prop ] = originalEvent[ prop ];
+	}
+
+	// Support: Cordova 2.5 (WebKit) (#13255)
+	// All events should have a target; Cordova deviceready doesn't
+	// 移动端的事件deviceready没有target,做兼容性处理
+	if ( !event.target ) {
+		event.target = document;
+	}
+
+	// Support: Safari 6.0+, Chrome < 28
+	// Target should not be a text node (#504, #13143)
+	// 事件源不能是文本,如果是文本就变成他的父级
+	if ( event.target.nodeType === 3 ) {
+		event.target = event.target.parentNode;
+	}
+
+	return fixHook.filter? fixHook.filter( event, originalEvent ) : event;
+},
+
+
+
+
+
+
+//[4912]
+jQuery.Event = function( src, props ) {
+	// Allow instantiation without the 'new' keyword
+	// 容错处理
+	if ( !(this instanceof jQuery.Event) ) {
+		return new jQuery.Event( src, props );
+	}
+
+	// Event object
+	if ( src && src.type ) {
+		this.originalEvent = src;
+		this.type = src.type;
+
+		// Events bubbling up the document may have been marked as prevented
+		// by a handler lower down the tree; reflect the correct value.
+		this.isDefaultPrevented = ( src.defaultPrevented ||
+			src.getPreventDefault && src.getPreventDefault() ) ? returnTrue : returnFalse;
+
+	// Event type
+	} else {
+		this.type = src;
+	}
+
+	// Put explicitly provided properties onto the event object
+	// 如果有额外属性也可以加强
+	if ( props ) {
+		jQuery.extend( this, props );
+	}
+
+	// Create a timestamp if incoming event doesn't have one
+	// 时间戳,1970年开始的毫秒数
+	this.timeStamp = src && src.timeStamp || jQuery.now();
+
+	// Mark it as fixed
+	// 设置缓存,说明$.event.fix下面的代码执行过了,第二次就不用执行了
+	this[ jQuery.expando ] = true;
+};
+
+// jQuery.Event is based on DOM3 Events as specified by the ECMAScript Language Binding
+// http://www.w3.org/TR/2003/WD-DOM-Level-3-Events-20030331/ecma-script-binding.html
+jQuery.Event.prototype = {
+	isDefaultPrevented: returnFalse,   //returnFlase是返回false的单纯函数
+	isPropagationStopped: returnFalse,
+	isImmediatePropagationStopped: returnFalse,
+
+	//阻止默认事件
+	preventDefault: function() {
+		var e = this.originalEvent;
+
+		this.isDefaultPrevented = returnTrue;
+
+		if ( e && e.preventDefault ) {
+			e.preventDefault();
+		}
+	},
+	//阻止冒泡
+	stopPropagation: function() {
+		var e = this.originalEvent;
+
+		//可以使用e.isPropagationStopped()方法来判断是否阻止冒泡
+		this.isPropagationStopped = returnTrue;
+
+		//使用原生的方法阻止冒泡行为
+		if ( e && e.stopPropagation ) {
+			e.stopPropagation();
+		}
+	},
+	//阻止冒泡(也会阻止自身)
+	//详见(三)
+	stopImmediatePropagation: function() {
+		this.isImmediatePropagationStopped = returnTrue;
+		this.stopPropagation();
+	}
+};
+
+
+
+```
+
+>内容解析
+
+(一) `event.whitch`属性识别鼠标键
+
+``` javascript
+$(function(){
+    $(document).on('click',function(e) {
+        console.log(e.which);       //左:1 中:得不到 右:得不到
+    });
+		
+	$(document).on('mousedown',function(e) {
+         console.log('mousedown:' + e.which);  //左:1 中:2 右:3
+    })
+});
+```
+
+
+(二) `event`属性
+
+``` javascript
+$(function(){
+  $('#div1').on('click',function(e) {
+      console.log(e);                 //jQuery的event对象(加强了原生的event对象)
+      console.log(e.originalEvent);   //原生event对象
+  })
+});
+```
+
+
+(三) `event.stopImmediatePropagation`
+
+``` javascript
+
+<div id="div1">this is <span> this is span </span>div</div>
+
+//情况一
+$(function(){
+    //点击span元素,因为会冒泡,所以两者都会触发
+    $('#div1').on('click',function(e) {
+        console.log('div:click');   
+    });
+
+    $('span').on('click',function(e) {
+        console.log('span:click');      
+    });
+});
+
+//情况二
+$(function(){
+    //点击span元素,因为阻止冒泡,所以不会触发div的click事件
+    $('#div1').on('click',function(e) {
+        console.log('div:click');
+    });
+
+    $('span').on('click',function(e) {
+        console.log('span:click');
+        e.stopPropagation();    //阻止冒泡
+    });
+
+    $('span').on('click',function(e) {
+        console.log('span:click');
+    });
+});
+
+//情况三
+$(function(){
+    //点击span元素,因为阻止冒泡得到增强,不仅不会触发div的click事件,也不会触发自身绑定的其他事件
+    $('#div1').on('click',function(e) {
+        console.log('div:click');
+    });
+
+    $('span').on('click',function(e) {
+        console.log('span:click1');
+        e.stopImmediatePropagation();
+    });
+
+    $('span').on('click',function(e) {
+        console.log('span:click2');
+    });
+});
+```
+
+
+
+
+
+
+
