@@ -7375,14 +7375,13 @@ console.log($select.val());					//返回的是数组 ['2','value_3']
 
 ``` javascript
 //[4324]
+/* 事件的工具方法 */
 jQuery.event = {
 	global
-	// add remove trigger 重点
-	add
+	add            //add remove trigger 重点
 	remove
 	trigger
-	// 后面是前面三个的辅助
-	dispatch
+	dispatch       //后面是前面三个的辅助
 	handlers
 	props
 	fixHooks
@@ -7393,7 +7392,7 @@ jQuery.event = {
 	simulate
 }
 
-//构造函数
+/* 事件的工具构造函数 */
 jQuery.Event = function( src, props ) {
 }
 
@@ -7407,19 +7406,16 @@ jQuery.Event.prototype = {
 }
 
 
+/* jQuery实例对象的扩展 */
 jQuery.fn.extend({
-	//调用$.event.add
 	on
-	//one调用on
 	one
-	//调用$.event.remove
 	off
-	//调用$.event.trigger
 	trigger
 	triggerHandler
 })
 
-// [6720] 调用$().on $().trigger
+// [6720] jQuery实例对象的扩展, 调用$().on $().trigger
 jQuery.each( ("blur focus focusin focusout load resize scroll unload click dblclick " +
 	"mousedown mouseup mousemove mouseover mouseout mouseenter mouseleave " +
 	"change select submit keydown keypress keyup error contextmenu").split(" "), function( i, name ) {
@@ -7473,35 +7469,25 @@ $input.trigger('show');     //不会触发
 ```
 
 
-## 13.1 事件实例对象`jQuery.fn.extend`
+## 13.1 JQuery实例对象扩展`jQuery.fn.extend`
 
 这里的`jQuery.fn.extend`主要调用`jQuery.event`对象的方法
 
 
 ``` javascript
 jQuery.fn.extend({
-	//调用$.event.add()
-	on
-	//one调用$().on()
-	one
-	//调用$.event.remove()
-	off
-	//调用$.event.trigger()
-	trigger
-	//调用$.event.trigger()
+	on      
+	one     
+	off     
+	trigger 
 	triggerHandler
 })
 
 jQuery.fn.extend({
-	
 	hover
-	//调用$().on()
 	bind
-	//调用$().off()
 	unbind
-	//调用$().on()
 	delegate
-	//调用$().off()
 	undelegate
 }
 ```
@@ -7509,8 +7495,8 @@ jQuery.fn.extend({
 ## 13.1.1 `$().on()`
 
 - 调用`$.event.add()`
-- 该函数主要是对传入参数做处理,并不绑定事件
-- 调用路线:  `$().on()`(参数处理) -> `$().event.add()`(数据缓存) -> `$().event.dispatch()`(事件操作处理) -> `$().event.fix()` (整合event事件) -> `$().event.special()`(事件特殊处理) -> `$().event.handlers()`(事件执行顺序的队列操作)
+- 该函数主要是对传入参数做处理,并不做绑定事件操作
+- 调用路线:  `$().on()`(参数处理) -> `$().event.add()`(数据缓存) -> `$().event.dispatch()`(事件操作处理) -> `$().event.fix()` (事件兼容性处理) -> `$().event.special()`(特殊事件处理) -> `$().event.handlers()`(事件执行顺序的队列操作)
  
 >源码
 ``` javascript
@@ -7642,7 +7628,7 @@ $('ul').on({
 $('#input').focus(function() {
    $(this).css('background','red');
 });
-$('#input').trigger('focus');		//主动触发focus事件,光标自动定位到input
+$('#input').trigger('focus');				//主动触发focus事件,光标自动定位到input
 ```
 
 ## 13.1.5 `$().triggerHandler()`
