@@ -7472,141 +7472,8 @@ $input.trigger('show');     //alert(1)/alert(2)
 $input.trigger('show');     //不会触发
 ```
 
-(二) 模拟实现
 
-``` javascript
-function Event() {}
-
-Event.prototype.on = function(elem,type,handler) {
-    elem.listeners = elem.listeners || {};
-    elem.listeners[type] = elem.listeners[type] || [];
-    elem.listeners[type].push(handler);
-    elem.addEventListener(type,handler,false);   //false是冒泡机制
-};
-
-Event.prototype.off = function(elem,type,handler) {
-    elem.removeEventListener(type,handler,false);
-    delete elem.listeners[type];
-};
-
-Event.prototype.trigger = function(elem,type) {
-    var listeners = elem.listeners[type] || [];
-    for(var i=0,len=listeners.length; i<len; i++) {
-        listeners[i]()
-    }
-};
-
-var input = document.getElementById('input');
-
-function fn1() {
-    alert(1);
-}
-
-function fn2() {
-    alert(2);
-}
-
-//非自定义事件
-var event = new Event();
-event.on(input,'click',fn1);   //添加
-event.off(input,'click',fn1);  //取消添加
-event.on(input,'click',fn1);   //只触发fn1一次
-
-//自定义事件
-event.on(input,'show',fn2);
-event.trigger(input,'show');
-```
-
-
-(三) `data`缓存
-
-```
-
-$(function(){
-    $('#div1').on('click',function(a) {
-        console.log('click div');
-    });
-
-    $('#div1').on('click','span',function(b) {
-        console.log('click span');
-    });
-
-    $('#div1').on('mouseover.ziyi2',function(c) {
-        console.log('mouserover');
-    });
-});
-
-/*
-
-[4328]
-$.event.add 底部 console.log(elemData);
-
-
-var elemData = {
-    events: {
-        'click': [                          //arr.length = 2 arr.delegateCount = 1 (委托计数值)
-            {
-                data: undefined,
-                guid: 2,                    //当前事件的唯一标识
-                handler: function(b) {},    //事件函数
-                namespace: "",              //命名空间
-                needsContext: false,        //委托人是否是伪类(span:last)
-                origType: "click",          //mouseenter(浏览器不支持会用mouseover模拟)
-                selector: "span",           //委托(委托会首先放到数组的前面)
-                type: "click"               //事件类型(模拟事件类型)
-            },
-            {
-                data: undefined,
-                guid: 1,
-                handler: function(a) {},
-                needsContext: undefined,
-                origType: "click",
-                selector: undefined,        //没有委托
-                type: "click"
-            }
-        ],
-
-        'mouserover': [                     //arr.length = 1 arr.delegateCount = 0 (委托计数值)
-            {
-                data: undefined,
-                guid: 3,                    //当前事件的唯一标识
-                handler: function(c) {},
-                namespace: "ziyi2",         //命名空间
-                needsContext: undefined,
-                origType: "mouseover",
-                selector: undefined,        //没有委托
-                type: "mouseover"
-            }
-        ]
-    },
-
-    handle: function(e) {                   //真正的事件函数
-
-    }
-};
-*/
-```
-
-
-(四) 命名空间
-
-``` javascript
-$('#div2').on('click.click1',function() {
-	alert(1);
-});
-
-$('#div2').on('click.click2',function() {
-    alert(2);
-});
-
-$('#div2').on('click',function() {
-    alert(3);
-});
-
-$('#div2').trigger('click.click1'); //1
-```
-
-## 13.1 事件`jQuery.fn.extend`
+## 13.1 事件实例对象`jQuery.fn.extend`
 
 这里的`jQuery.fn.extend`主要调用`jQuery.event`对象的方法
 
@@ -7641,6 +7508,10 @@ jQuery.fn.extend({
 
 ## 13.1.1 `$().on()`
 
+- 调用`$.event.add()`
+- 该函数主要是对传入参数做处理,并不绑定事件
+- 调用路线:  `$().on()`(参数处理) -> `$().event.add()`(数据缓存) -> `$().event.dispatch()`(事件操作处理) -> `$().event.fix()` (整合event事件) -> `$().event.special()`(事件特殊处理) -> `$().event.handlers()`(事件执行顺序的队列操作)
+ 
 >源码
 ``` javascript
 jQuery.fn.extend({
@@ -7784,5 +7655,368 @@ $('#input').triggerHandler('focus');		//主动触发focus事件,光标不会定�
 
 ```
 
+## 13.2 事件工具对象`jQuery.Event`
+
+``` javascript
+//[4324]
+jQuery.event = {
+    global
+    add           //绑定事件,主要是对事件的data缓存进行操作
+    remove        //取消绑定事件
+    trigger       //主动触发事件
+    dispatch      //分发事件的具体操作 
+    handlers      //函数执行顺序的操作
+    props
+    fixHooks
+    keyHooks
+    mouseHooks
+    fix           //event对象的兼容处理
+    special       //特殊事件的处理
+    simulate
+}
+
+//构造函数
+jQuery.Event = function( src, props ) {
+}
+
+jQuery.Event.prototype = {
+    isDefaultPrevented
+    isPropagationStopped
+    isImmediatePropagationStopped
+    preventDefault
+    stopPropagation
+    stopImmediatePropagation
+}
+```
+
+## 13.2.1 `$.event.add()`
+
+- 被`$().on()`调用
+- 最终调用`$.event.dispatch()` (具体的事件操作)
+- 该函数主要是对事件`data`进行缓存处理
+
+>源码
 
 
+``` javascript
+jQuery.event = {
+	add: function( elem, types, handler, data, selector ) {
+		var handleObjIn, eventHandle, tmp,
+			events, t, handleObj,
+			special, handlers, type, namespaces, origType,
+			elemData = data_priv.get( elem );
+	
+		// Don't attach events to noData or text/comment nodes (but allow plain objects)
+		if ( !elemData ) {
+			return;
+		}
+	
+		// Caller can pass in an object of custom data in lieu of the handler
+		if ( handler.handler ) {
+			handleObjIn = handler;
+			handler = handleObjIn.handler;
+			selector = handleObjIn.selector;
+		}
+	
+		// Make sure that the handler has a unique ID, used to find/remove it later
+		if ( !handler.guid ) {
+			handler.guid = jQuery.guid++;
+		}
+	
+		// Init the element's event structure and main handler, if this is the first
+		if ( !(events = elemData.events) ) {
+			events = elemData.events = {};
+		}
+		if ( !(eventHandle = elemData.handle) ) {
+			eventHandle = elemData.handle = function( e ) {
+				// Discard the second event of a jQuery.event.trigger() and
+				// when an event is called after a page has unloaded
+				return typeof jQuery !== core_strundefined && (!e || jQuery.event.triggered !== e.type) ?
+					jQuery.event.dispatch.apply( eventHandle.elem, arguments ) :
+					undefined;
+			};
+			// Add elem as a property of the handle fn to prevent a memory leak with IE non-native events
+			eventHandle.elem = elem;
+		}
+	
+		// Handle multiple events separated by a space
+		types = ( types || "" ).match( core_rnotwhite ) || [""];
+		t = types.length;
+		while ( t-- ) {
+			tmp = rtypenamespace.exec( types[t] ) || [];
+			type = origType = tmp[1];
+			namespaces = ( tmp[2] || "" ).split( "." ).sort();
+	
+			// There *must* be a type, no attaching namespace-only handlers
+			if ( !type ) {
+				continue;
+			}
+	
+			// If event changes its type, use the special event handlers for the changed type
+			special = jQuery.event.special[ type ] || {};
+	
+			// If selector defined, determine special event api type, otherwise given type
+			type = ( selector ? special.delegateType : special.bindType ) || type;
+	
+			// Update special based on newly reset type
+			special = jQuery.event.special[ type ] || {};
+	
+			// handleObj is passed to all event handlers
+			handleObj = jQuery.extend({
+				type: type,
+				origType: origType,
+				data: data,
+				handler: handler,
+				guid: handler.guid,
+				selector: selector,
+				needsContext: selector && jQuery.expr.match.needsContext.test( selector ),
+				namespace: namespaces.join(".")
+			}, handleObjIn );
+	
+			// Init the event handler queue if we're the first
+			if ( !(handlers = events[ type ]) ) {
+				handlers = events[ type ] = [];
+				handlers.delegateCount = 0;
+	
+				// Only use addEventListener if the special events handler returns false
+				if ( !special.setup || special.setup.call( elem, data, namespaces, eventHandle ) === false ) {
+					if ( elem.addEventListener ) {
+						elem.addEventListener( type, eventHandle, false );
+					}
+				}
+			}
+	
+			if ( special.add ) {
+				special.add.call( elem, handleObj );
+	
+				if ( !handleObj.handler.guid ) {
+					handleObj.handler.guid = handler.guid;
+				}
+			}
+	
+			// Add to the element's handler list, delegates in front
+			if ( selector ) {
+				handlers.splice( handlers.delegateCount++, 0, handleObj );
+			} else {
+				handlers.push( handleObj );
+			}
+	
+			// Keep track of which events have ever been used, for event optimization
+			jQuery.event.global[ type ] = true;
+		}
+	
+		// Nullify elem to prevent memory leaks in IE
+		elem = null;
+	
+		console.log(elemData);
+	},
+}	
+```
+
+
+>内容解析
+
+
+(一) 模拟实现(说明需要数据缓存)
+
+``` javascript
+function Event() {}
+
+Event.prototype.on = function(elem,type,handler) {
+    elem.listeners = elem.listeners || {};
+    elem.listeners[type] = elem.listeners[type] || [];
+    elem.listeners[type].push(handler);
+    elem.addEventListener(type,handler,false);   //false是冒泡机制
+};
+
+Event.prototype.off = function(elem,type,handler) {
+    elem.removeEventListener(type,handler,false);
+    delete elem.listeners[type];
+};
+
+Event.prototype.trigger = function(elem,type) {
+    var listeners = elem.listeners[type] || [];
+    for(var i=0,len=listeners.length; i<len; i++) {
+        listeners[i]()
+    }
+};
+
+var input = document.getElementById('input');
+
+function fn1() {
+    alert(1);
+}
+
+function fn2() {
+    alert(2);
+}
+
+//非自定义事件
+var event = new Event();
+event.on(input,'click',fn1);   //添加
+event.off(input,'click',fn1);  //取消添加
+event.on(input,'click',fn1);   //只触发fn1一次
+
+//自定义事件
+event.on(input,'show',fn2);
+event.trigger(input,'show');
+```
+
+(二) 数据缓存结构
+
+```
+
+$(function(){
+    $('#div1').on('click',function(a) {
+        console.log('click div');
+    });
+
+    $('#div1').on('click','span',function(b) {
+        console.log('click span');
+    });
+
+    $('#div1').on('mouseover.ziyi2',function(c) {
+        console.log('mouserover');
+    });
+});
+
+/*
+
+[4328]
+$.event.add 底部 console.log(elemData);
+
+
+var elemData = {
+    events: {
+        'click': [                          //arr.length = 2 arr.delegateCount = 1 (委托计数值)
+            {
+                data: undefined,
+                guid: 2,                    //当前事件的唯一标识
+                handler: function(b) {},    //事件函数
+                namespace: "",              //命名空间
+                needsContext: false,        //委托人是否是伪类(span:last)
+                origType: "click",          //mouseenter(浏览器不支持会用mouseover模拟)
+                selector: "span",           //委托(委托会首先放到数组的前面)
+                type: "click"               //事件类型(模拟事件类型)
+            },
+            {
+                data: undefined,
+                guid: 1,
+                handler: function(a) {},
+                needsContext: undefined,
+                origType: "click",
+                selector: undefined,        //没有委托
+                type: "click"
+            }
+        ],
+
+        'mouserover': [                     //arr.length = 1 arr.delegateCount = 0 (委托计数值)
+            {
+                data: undefined,
+                guid: 3,                    //当前事件的唯一标识
+                handler: function(c) {},
+                namespace: "ziyi2",         //命名空间
+                needsContext: undefined,
+                origType: "mouseover",
+                selector: undefined,        //没有委托
+                type: "mouseover"
+            }
+        ]
+    },
+
+    handle: function(e) {                   //真正的事件函数
+
+    }
+};
+*/
+```
+
+(三) 命名空间
+
+
+``` javascript
+$('#div2').on('click.click1',function() {
+	alert(1);
+});
+
+$('#div2').on('click.click2',function() {
+    alert(2);
+});
+
+$('#div2').on('click',function() {
+    alert(3);
+});
+
+//也可以多层命名空间
+$('#div1').on('mouseover.ziyi2.add',function(c) {
+    console.log('mouserover');
+});
+
+$('#div2').trigger('click.click1'); //1
+```
+
+
+(四) 多事件
+
+``` javascript
+$('#div1').on('click mouseover focus',function(a) {
+	console.log('click div');
+});         
+```
+
+
+## 13.2.* `$.event.dispatch()`
+
+>内容解析
+
+(一)  阻止冒泡和阻止默认行为
+
+```
+$(function(){
+  $('#div1').on('click','span',function(e) {
+     console.log('click span');
+       //e.preventDefault();   //return false就是这两句功能
+       //e.stopPropagation();
+       return false;           //阻止冒泡和阻止默认事件
+   });
+
+   $('#div1').on('click',function(e) {
+       console.log('click');
+   });
+});
+  
+//点击span元素,由于阻止冒泡,因此div1的click事件是不是触发的,不会打印click
+```
+
+
+
+## 13.2.* `$.event.handlers()`
+
+- 作用是实现事件队列
+
+>内容解析
+
+(一) 事件触发顺序
+
+
+``` javascript
+<div id="div1">this is <span> this is span </span>div</div>
+
+
+ $(function(){
+   $('#div1').on('click',function() {
+       console.log('click1');
+   });
+
+   $('#div1').on('click',function() {
+       console.log('click2');
+   });
+
+   $('#div1').on('click','span', function() {
+       console.log('click span');
+   });
+});
+
+//点击span元素, 打印顺序 1. click span 2. click1 3. click2
+//需要注意的是尽管$.event.add中已经在data缓存中把委托的放在最前面,但是如果同时委托多个.委托顺序则不会按照顺序执行.所以需要$.event.handlers函数进行执行顺序的处理 
+```
