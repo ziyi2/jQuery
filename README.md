@@ -4198,7 +4198,7 @@ jQuery.extend({
 				[ "reject", "fail", jQuery.Callbacks("once memory"), "rejected" ],
 				[ "notify", "progress", jQuery.Callbacks("memory") ]
 			],
-	
+
 			//详见(三)
 			state = "pending",
 			promise = {
@@ -4263,7 +4263,7 @@ jQuery.extend({
 					return obj != null ? jQuery.extend( obj, promise ) : promise;
 				}
 			},
-			
+
 			//注意闭包形式,因为外部调用$.Deffered()会一直保持着 引用
 			//所以这个对象暂时是不会释放的
 			//这个对象有很多属性是函数
@@ -4655,13 +4655,13 @@ dfd.done(function() {
 var dfd = $.Deferred();
 
 	dfd.resolve('hi');
-	
+
 	//其实pipe和then是一样的,因此也是三个参数函数
 	//分别对应resolve reject notify
 	var newDfd = dfd.pipe(function() {
 	    return arguments[0] + 'pass then';
 	});
-	
+
 	newDfd.done(function() {
 	    console.log(arguments[0])   //hipass then
 })
@@ -4716,7 +4716,7 @@ jQuery.extend({
 			// the master Deferred. If resolveValues consist of only a single Deferred, just use that.
 			// 如果只有一个参数 remaining = 1,如果返回值是延迟对象,则deffered是when中的fn返回的延迟对象
 			// 如果返回值不是deffered对象,则执行后面的$.Deffered
-			// 
+			//
 			deferred = remaining === 1 ? subordinate : jQuery.Deferred(),
 
 			// Update function for both resolve and progress values
@@ -4759,10 +4759,10 @@ jQuery.extend({
 			deferred.resolveWith( resolveContexts, resolveValues );
 		}
 
-		// 如果是一个参数fn,则返回的是这个参数的延迟对象对应的promise() 
+		// 如果是一个参数fn,则返回的是这个参数的延迟对象对应的promise()
 		return deferred.promise();
 	}
-});	
+});
 ```
 
 
@@ -4775,7 +4775,7 @@ jQuery.extend({
 function fn1() {
     var dfd = $.Deferred();
     dfd.resolve();
-    return dfd;  
+    return dfd;
 }
 function fn2() {
     var dfd = $.Deferred();
@@ -4850,7 +4850,7 @@ $.when(fn1(),fn2()).done(function() {
 
 - 检测(不是解决,解决是`hooks`)内部源码的兼容性
 - 工具方法
-- 
+-
 
 
 >源码
@@ -4859,14 +4859,14 @@ $.when(fn1(),fn2()).done(function() {
 //[3184]
 //工具方法 匿名函数自执行
 jQuery.support = (function( support ) {
-	
+
 	//1. 动态创建元素进行功能检测
 	var input = document.createElement("input"),
 			fragment = document.createDocumentFragment(),
 			div = document.createElement("div"),
 			select = document.createElement("select"),
 			opt = select.appendChild( document.createElement("option") );
-	
+
 	// Finish early in limited environments
 	// 这基本没什么必要
 	if ( !input.type ) {
@@ -4879,9 +4879,9 @@ jQuery.support = (function( support ) {
 	// Support: Safari 5.1, iOS 5.1, Android 4.x, Android 2.3
 	// Check the default checkbox/radio value ("" on old WebKit; "on" elsewhere)
 	// 老版本下是"",其他都是"on"
-	// 解决兼容性问题就是将""改成"on" 
+	// 解决兼容性问题就是将""改成"on"
 	support.checkOn = input.value !== "";
-	
+
 	// Must access the parent to make an option select properly
 	// Support: IE9, IE10
 	// select元素 选项时检测第一项是不是选中的
@@ -4917,7 +4917,7 @@ jQuery.support = (function( support ) {
 	support.radioValue = input.value === "t";
 
 	// #11217 - WebKit loses check when the name is after the checked attribute
-	// 
+	//
 	input.setAttribute( "checked", "t" );
 	input.setAttribute( "name", "t" );
 
@@ -4933,7 +4933,7 @@ jQuery.support = (function( support ) {
 	// onfocus事件不能冒泡 因此不能在父元素上监听到子元素的此事件
 	// 在IE下onfocusin事件可以冒泡
 	support.focusinBubbles = "onfocusin" in window;
-	
+
 	// 应该不影响原有的DIV的背景属性(所有背景属性都一样)
 	// 在IE下都会影响
 	div.style.backgroundClip = "content-box";
@@ -4946,7 +4946,7 @@ jQuery.support = (function( support ) {
 		var container, marginDiv,
 			// Support: Firefox, Android 2.3 (Prefixed box-sizing versions).
 			// box-sizing css3属性 content-box标准模式 border-box怪异模式(width包括padding border等)
-			// 会影响盒模型 
+			// 会影响盒模型
 			// 设置成标准模式
 			divReset = "padding:0;margin:0;border:0;display:block;-webkit-box-sizing:content-box;-moz-box-sizing:content-box;box-sizing:content-box",
 			body = document.getElementsByTagName("body")[ 0 ];
@@ -4989,7 +4989,7 @@ jQuery.support = (function( support ) {
 			marginDiv.style.cssText = div.style.cssText = divReset;
 			marginDiv.style.marginRight = marginDiv.style.width = "0";
 			div.style.width = "1px";
-			
+
 			support.reliableMarginRight =
 				!parseFloat( ( window.getComputedStyle( marginDiv, null ) || {} ).marginRight );
 		}
@@ -5069,9 +5069,9 @@ jQuery.extend({
 
 //扩展实例方法(调用了实例Date对象的方法)
 jQuery.fn.extend({
-	data: 
+	data:
 	removeData:
-});	
+});
 ```
 
 >内容解析
@@ -5202,7 +5202,7 @@ Data.prototype = {
 		if ( !this.cache[ unlock ] ) {
 			this.cache[ unlock ] = {};
 		}
-		
+
 		// 返回DOM元素的标识符1
 		return unlock;
 	},
@@ -5277,8 +5277,8 @@ Data.prototype = {
 		// 或者key也没有
 		if ( key === undefined ||
 				((key && typeof key === "string") && value === undefined) ) {
-				
-			// 获取值	
+
+			// 获取值
 			stored = this.get( owner, key );
 
 			// 返回值
@@ -5483,10 +5483,10 @@ console.log($.hasData(div));     //false
      ziyi2.get = function() {
        return data.get();
      };
-     window.ziyi2 = ziyi2; 
+     window.ziyi2 = ziyi2;
  })(window);
 
- ziyi2.set("ziyi2");        
+ ziyi2.set("ziyi2");
  console.log(ziyi2.get());  //ziyi2 为什么data变量在局部函数(自执行函数中)中没有被释放? 这个和this.cache为什么没有被释放是一个道理
 ```
 
@@ -5806,7 +5806,7 @@ outputNumbers(10);
 (function(){
     //都变成了局部变量
     //调用完即销毁变量
-    
+
     var now = new Date();
     if(now.getMonth() == 0 && now.getDate() == 1){
         write("Happy new year");
@@ -5870,7 +5870,7 @@ write(Per.getName()); //Hugo
 /*静态私有变量*/
 (function(){
     var name = "";
-                          
+
     //定义构造函数时并没有使用函数声明，而是使用了函数表达式
     //函数声明创建的是局部函数，这不是我们想要的
     //这里需要的是全局函数
@@ -5996,8 +5996,8 @@ jQuery.fn.extend({
 			if ( this.length ) {
 				//获取数据,这里获取的是构造函数Date的this.cache中的值
 				data = data_user.get( elem );
-					
-				//这里获取HTML5中的dom属性data-的值	
+
+				//这里获取HTML5中的dom属性data-的值
 				if ( elem.nodeType === 1 && !data_priv.get( elem, "hasDataAttrs" ) ) {
 					//获取元素的attributes值
 					attrs = elem.attributes;
@@ -6030,7 +6030,7 @@ jQuery.fn.extend({
 				data_user.set( this, key );
 			});
 		}
-		
+
 		//
 		return jQuery.access( this, function( value ) {
 			var data,
@@ -6099,8 +6099,8 @@ jQuery.fn.extend({
 			});
 
 		// arguments.length如果>1则说设置数据
-		// 否则是获取数据 
-		
+		// 否则是获取数据
+
 		}, null, value, arguments.length > 1, null, true );
 	},
 
@@ -6252,7 +6252,7 @@ jQuery.extend({
 	dequeue: function( elem, type ) {
 		//type默认是fx
 		type = type || "fx";
-		
+
 		//利用$.queue没有第三参数获取queue
 		var queue = jQuery.queue( elem, type ),
 			startLength = queue.length,
@@ -6272,7 +6272,7 @@ jQuery.extend({
 			fn = queue.shift();
 			startLength--;
 		}
-	
+
 		//如果有需要执行的fn
 		if ( fn ) {
 
@@ -6415,7 +6415,7 @@ jQuery.fn.extend({
 
 				// ensure a hooks for this queue
 				jQuery._queueHooks( this, type );
-				
+
 
 				//$().animate()第一次需要自执行时会满足条件进来
 				if ( type === "fx" && queue[0] !== "inprogress" ) {
@@ -6441,11 +6441,11 @@ jQuery.fn.extend({
 		// Default speed
 		_default: 400
 	};
-	*/	
+	*/
 	delay: function( time, type ) {
 		time = jQuery.fx ? jQuery.fx.speeds[ time ] || time : time;
 		type = type || "fx";
-		
+
 		//需要注意data传入的参数就是函数function(next,hoos)类似于fn1 fn2...
 		return this.queue( type, function( next, hooks ) {
 			var timeout = setTimeout( next, time );
@@ -6485,7 +6485,7 @@ jQuery.fn.extend({
 		while( i-- ) {
 			//获取所有所有element的queue队列
 			tmp = data_priv.get( elements[ i ], type + "queueHooks" );
-				
+
 			if ( tmp && tmp.empty ) {
 				//count++表明所有的队列++
 				count++;
@@ -6541,7 +6541,7 @@ $(document).queue('fn',fn1);
 $(document).queue('fn',fn2);
 
 $(document).dequeue('fn'); //fn1 -> next() -> fn1 -> next() -> fn2
-//this is fn1 
+//this is fn1
 //this is fn1
 //this is fn2
 ```
@@ -6628,7 +6628,7 @@ console.log($div.attr("ziyi2"));	//undefined
 //[3805] $().attr()
 attr: function( name, value ) {
     //最后一个参数用于判断是获取还是设置操作
-    //access方法用于在这里用于遍历this这个elems，并且调用jQuery.attr函数进行操作	
+    //access方法用于在这里用于遍历this这个elems，并且调用jQuery.attr函数进行操作
     return jQuery.access( this, jQuery.attr, name, value, arguments.length > 1 );
 },
 
@@ -6663,7 +6663,7 @@ attr: function( elem, name, value ) {
 		hooks = jQuery.attrHooks[ name ] ||
 			( jQuery.expr.match.bool.test( name ) ? boolHook : nodeHook );
 	}
-	
+
 	//如果value存在
 	if ( value !== undefined ) {
 		//如果value设置为null则是移除属性
@@ -6790,7 +6790,7 @@ removeAttr: function( elem, value ) {
 	//详见(二)
         attrNames = value && value.match( core_rnotwhite );
 
-    //第一个参数必须是element对象	 
+    //第一个参数必须是element对象
     if ( attrNames && elem.nodeType === 1 ) {
         while ( (name = attrNames[i++]) ) {
             propName = jQuery.propFix[ name ] || name;
@@ -6801,22 +6801,22 @@ removeAttr: function( elem, value ) {
 		// 布尔值的属性需要设置为false
                 elem[ propName ] = false;
             }
-		
-	    //原生方法删除属性	
+
+	    //原生方法删除属性
             elem.removeAttribute( name );
         }
     }
 },
 
-//兼容性，for和class本身是关键字	
+//兼容性，for和class本身是关键字
 propFix: {
     "for": "htmlFor",
     "class": "className"
-},	
+},
 
 ```
-	
-	
+
+
 >内容解析
 
 
@@ -6874,7 +6874,7 @@ prop: function( elem, name, value ) {
 
     notxml = nType !== 1 || !jQuery.isXMLDoc( elem );
 
-    // 如果不是xml，则可能有兼容性问题需要处理	
+    // 如果不是xml，则可能有兼容性问题需要处理
     if ( notxml ) {
         // Fix name and attach hooks
         name = jQuery.propFix[ name ] || name;
@@ -6992,7 +6992,7 @@ addClass: function( value ) {
 <script src="Jquery2.0.3.js"></script>
 <script>
     var $div = $("#div");
-    div.addClass("box		box1 box2 box4" );	
+    div.addClass("box		box1 box2 box4" );
     $div.addClass(function(index, className) {	//适合多个元素时利用index设置class
 	//indexOf如果找到了则返回找到的位置
 	if(className.indexOf('box4') > -1) {
@@ -7216,7 +7216,7 @@ valHooks: {
           // attributes.value is undefined in Blackberry 4.7 but
           // uses .value. See #6932
 	  // elem.attributes 是元素的所有属性的集合
-          // 判断value属性是不是存在		
+          // 判断value属性是不是存在
           var val = elem.attributes.value;
 	  // val.specified 判断value属性是否指定了值，如果指定了值则返回指定值，否则返回元素的text文本
           return !val || val.specified ? elem.value : elem.text;
@@ -7449,7 +7449,7 @@ var $input = $('#input');
 
 $input.on('click',function() {
    alert(1);
-});  
+});
 
 $input.trigger('focus');    //触发了默认的focus效果
 $input.trigger('click');    //触发了click事件,alert(1)
@@ -7467,6 +7467,376 @@ $input.on('show',function() {
 $input.trigger('show');     //alert(1)/alert(2)
 $input.trigger('show');     //不会触发
 ```
+(二)  事件流
+
+- **事件冒泡**: 事件开始时是最具体的元素接收，然后逐级向上传播到较为不具体的节点
+- **事件捕获**: 首先document对象接收事件，然后事件沿DOM树向下，一直传播到事件的实际目标
+
+>提示: 由于老的浏览器不支持事件捕获，建议使用事件冒泡
+
+(三) `DOM0/DOM2`事件
+
+``` javascript
+/*DOM0级事件处理程序*/
+
+//每个元素（包括window和document）都有自己的事件处理程序属性，这些属性通常全部小写，例如onclick
+//使用DOM0级方法指定的事件处理程序被认为是元素的方法，所以事件处理程序是在元素作用域中运行的，this指代button对象
+
+var btn = document.getElementById("myButton");
+btn.onclick = function(){
+    alert(this.id); //myButton
+}
+
+//这些代码运行以前不会指定时间出里程序，因此如果这些代码在页面中位于按钮后面，可能会在一段时间内单击没有反应
+btn.onclick = null; //删除事件处理程序
+
+/*DOM2级事件处理程序*/
+
+btn.addEventListener("click",function(){
+    alert(this.id);
+},false);   //最后一个参数 false：冒泡阶段被触发   true：事件捕获
+
+//与DOM0级一样，添加的事件处理程序也是在其依附的元素作用域中运行
+//添加多个事件处理程序
+btn.addEventListener("click",function(){
+    alert("hello world!");  //与上面事件执行顺序不同而已，是按键的两个事件
+},false);
+
+//addEventListener添加的事件只能用removeEventListener来移除
+btn.removeEventListener("click",function(){
+    alert("hello world!");  //并没有移除这个事件，原因是第二个参数这个函数与上面添加的函数并不是同一个，所以参数不一致了
+},false);                   //而移除则需要add和remove函数的三个参数一致
+
+var clickHandler = function(){
+    alert("The third click thing");
+};
+
+btn.addEventListener("click",clickHandler,false);   //添加第三个方法
+btn.removeEventListener("click",clickHandler,false); //clickHandler是同一个参数了，可以移除事件了
+
+//addEventListener添加的匿名函数对应的事件将不能被移除，因为参数不会一致了
+//大多数情况都是将事件处理程序添加到事件流的冒泡阶段
+
+//IE事件处理程序
+//IE9之前的IE不支持addEventListener和removeEventListener
+//IE5及以后的版本定义了类似的方法attachEvent和detachEvent
+//attachEvent detachEvent 与addEventListener removeEventListener类似
+//只是第一个参数是"onclick"而不是"click"
+//也可以添加多事件
+//只有两个参数，因为默认是冒泡阶段触发事件
+
+/* 跨浏览器的事件处理程序 */
+
+//用到了能力检测
+//使用DOM0 或者DOM2和IE方法来添加事件
+var EventUtil = {
+    addHandler: function(element,type,handler){
+        if(element.addEventListener){
+            element.addEventListener(type,handler,false); //只需要关注冒泡阶段
+        } else if(element.attachEvent){
+            element.attachEvent("on" + type,handler);
+        } else{
+            element["on" + type] = handler; //DOM0级事件处理
+        }
+    },
+    removeHandler:function(element,type,handler){
+        if(element.removeEventListener){
+            element.removeEventListener(type,handler,false);
+        } else if(element.detachEvent){
+            element.detachEvent("on" + type,handler);
+        } else{
+            element["on" + type] = null;
+        }
+    }
+}
+
+var handler = function(){
+    alert("EventUtil is using!");
+}
+
+EventUtil.addHandler(btn,"click",handler);
+EventUtil.removeHandler(btn,"click",handler);
+
+//需要注意的是IE的detachEvent和addEvent的作用域是window而不是触发的事件的元素
+//并且DOM0级对每个事件只支持一个事件处理程序
+var div = document.getElementById('div');
+div.onclick = function() {
+    console.log('click div1');
+};
+
+div.onclick = function() {
+    console.log('click div2');  //只打印这个,覆盖了上面的onclick属性
+};
+
+```
+
+(四) `event`事件对象
+
+``` javascript
+/*DOM中的事件对象event*/
+
+var btn = document.getElementById("myButton");
+
+//event.type / event.target / event.currentTarget
+//target  		 事件的目标
+//currentTarget  事件处理程序当前正在处理事件的那个元素
+//type           事件类型
+btn.addEventListener("click",function(event){
+    alert(event.type); //click
+    alert(event.currentTarget === this); //true
+    alert(event.target === this);        //true this和当前正在处理事件的那个元素（currentTarget）和事件的目标（target）一样。
+},false);
+
+document.body.onclick = function(event){
+    alert(event.currentTarget === document.body);                       //true
+    alert(this === document.body);                                      //true
+    alert(event.target === document.getElementById("myButton"));        //点击按钮 true 点击非按钮的body区域 false
+}
+
+//点击按钮时，事件处理程序是注册到body元素上的，然而，target元素却等于按钮元素，因为它是click事件真正的目标。
+//由于按钮上并没有注册事件处理程序，结果click事件就冒泡到了document.body，在那里事件才得到了处理
+
+//event.preventDefault() / event.cancelable
+//event.preventDefault()  取消事件的默认行为
+//event.cancelable        只有cancelable属性为true时，才能preventDefault起作用
+var link = document.getElementById("myLink");
+link.onclick = function(event){
+    alert(event.cancelable);    //true
+    event.preventDefault();     //取消默认行为，已经不能连接了
+}
+
+//event.stopPropagation  取消事件的进一步冒泡或者捕获
+
+btn.onclick = function(event){
+    alert("clicked");
+    event.stopPropagation();    //取消事件的进一步冒泡或者捕获
+};
+
+
+document.body.onclick = function(event){
+  alert("Body clicked");        //如果没有上面的stopPropagation这个就触发了,所以这里click事件不会传播到document.body
+};
+
+//event.eventPhase
+//1. 表示捕获阶段
+//2. 表示"处于目标"阶段
+//3. 表示冒泡
+
+//捕获时不太具体的节点更早的接收事件 document -> html -> body -> ...
+//默认冒泡的时候，顺序则相反，先处于目标的事件先触发，然后往上传递
+
+//DOM2级事件 规定了事件流的三个阶段：事件捕获阶段 处于目标阶段和事件冒泡阶段
+//首先发生的事件捕获 然后是实际的目标接收到事件 最后是冒泡阶段
+//此时如果点击button按钮
+
+btn.onclick = function(event){
+  alert("处于目标"+ event.eventPhase); //2
+	//此时，this,target和currentTarget始终相等
+};
+
+document.body.addEventListener("click",function(event){
+    alert("处于捕获阶段" + event.eventPhase); //1
+},true); //参数为true 设置为捕获模式
+
+document.body.onclick = function(event){
+    alert("处于冒泡阶段" + event.eventPhase); //3
+}
+
+//事件处理程序执行期间，event对象才会存在，一旦事件处理程序执行完成，event对象就会被销毁
+
+
+/*IE中的事件对象event*/
+//在IE8及以前的版本中，通过设置属性注册事件处理程序(例如上面的window.onload)
+//调用它们时并未传递事件对象 需要通过全局对象window.event来获取事件对象
+
+//event.type / event.srcElement(类似于event.target)
+btn.onclick = function(){
+    var event = window.event;
+    alert(event.type); //click chorme和IE都可以
+    alert(event.srcElement === this); //true
+};
+
+btn.attachEvent("onclick",function(event) {
+    alert(event.srcElement === this); //false
+});
+
+//event.returnValue(event.preventDefault) / event.cancelBubble (event.stopPropagation)
+
+//IE不支持事件捕获，但是支持取消冒泡
+```
+
+跨浏览器兼容写法
+
+``` javascript
+var EventUtil = {
+    addHandler: function(element,type,handler){
+        if(element.addEventListener){
+            element.addEventListener(type,handler,false); //只需要关注冒泡阶段
+        } else if(element.attachEvent){
+            element.attachEvent("on" + type,handler);
+        } else{
+            element["on" + type] = handler; //DOM0级事件处理
+        }
+    },
+    removeHandler:function(element,type,handler){
+        if(element.removeEventListener){
+            element.removeEventListener(type,handler,false);
+        } else if(element.detachEvent){
+            element.detachEvent("on" + type,handler);
+        } else{
+            element["on" + type] = null;
+        }
+    },
+
+    getEvent:function(event){
+        return event ? event : window.event;
+    },
+
+    getTarget:function(event){
+        return event.target || event.srcElement;
+    },
+
+    preventDefault:function(event){
+        if(event.preventDefault){
+            event.preventDefault();
+        } else{
+	        //IE9之前的IE中，可以通过设置事件对象的returnValue属性为false
+            event.returnValue = false;
+        } else{
+
+	 		return false;
+		}
+    },
+
+    stopPropagation:function(event){
+        if(event.stopPropagation){
+            event.stopPropagation();
+        } else{
+            event.cancelBubble = true;
+        }
+    }
+};
+
+
+var btn = document.getElementById("myButton");
+btn.onclick = function(event){
+    event = EventUtil.getEvent(event);
+    //alert(event);
+    //var target = EventUtil.getTarget(event);
+    //alert(target);
+    EventUtil.stopPropagation(event);
+    //event.preventDefault();
+};
+
+```
+
+(五) 内存和性能
+
+**事件委托**: 若果可行的话，可以考虑为`document`对象添加一个事件处理程序，用以处理页面上发生的某种特定类型的事件
+-  1.`document`对象很快就能访问到，可以在页面生命周期的任何时间点上为它添加事件处理程序， 无需等待`DOMContentLoaded`和`load`事件，只要可单击的元素呈现在页面上，就可以立即具备适当的功能
+- 2.在页面中设置事件处理程序所需的时间更少，所需的`DOM`引用更少，所花的时间更少
+- 3.整个页面占用的内存空间更少，能够提升整体性能
+
+>提示: 适合使用事件委托技术的事件包括 click、mousedown、mouseup、keydown、keyup和keypress。
+
+**移除事件**: 不需要的时候移除事件处理程序，可以解决内存与性能问题。
+
+``` javascript
+//1.从文档中移除带有事件处理程序的元素时，这可能是通过纯粹的DOM操作，例如removeChild()和replaceChild()方法
+//  但是更多的是发生在使用innerHTML替换页面中某一部分的时候，如果带有事件处理程序的元素被innerHTML删除了，
+//  那么原来添加到元素中的事件处理程序极有可能无法被当做垃圾回收
+
+/*var myBtn = document.getElementById("myBtn");
+myBtn.onclick = function(){
+    document.getElementById("myDiv").innerHTML = "Processing..."; //麻烦了，带有事件处理程序的button按钮被innerHTML删除了
+};*/
+
+//当按钮从页面移除以后，它还带着一个事件处理程序
+//事件处理程序仍然与按钮保持着引用关系
+//如果知道元素即将移除，那么最好手工移除事件处理程序
+
+//事件委托由于把是事件处理程序制定给较高层次的元素，所以即使使用innerHTML把子元素替换掉了，
+//由于事件不直接引用该元素，而是引用较高层次的元素，可以避免这个问题
+
+//卸载页面之前最好（可能是两个页面之间来回切换或者刷新页面）先通过onunload事件处理程序移除所有的时间处理程序
+//而事件委托技术表现出它的优势，跟踪的时间处理程序越少，移除它们就更容易
+
+```
+
+(六) 事件处理程序的返回值
+
+``` javascript
+//通过设置对象属性或HTML属性注册事件处理程序的返回值非常有意义
+//返回值false就是告诉浏览器不要执行这个事件相关的默认操作
+//例如表单提交按钮的onclick事件处理程序能返回false阻止浏览器提交表单
+
+function submit(){
+    return false;
+}
+
+window.onbeforeunload = function(){
+    return '是否跳转到新页面？';
+};
+
+//onbeforeunload事件处理程序的返回值也非常有意义 当浏览器要跳转到新页面时触发这个事件
+//如果事件处理程序中返回一个字符串，那么它将出现在询问用户是否想离开当前页面的标准对话框
+
+//事件处理程序的返回值中对通过属性注册的处理程序有意义
+//使用addEventListener()或者attachEvent()注册事件处理程序转而必须调用preventDefault()方法或设置事件对象的
+//returnValue属性
+```
+(七) 事件处理程序的优先级
+
+- 通过设置对象属性(DOM0)或HTML属性注册的处理程序一直优先调用
+- 使用`addEventListener()`注册的处理程序按照它们的注册顺序调用
+- 使用`attachEvent()`注册的处理程序可能按照任何顺序调用 所以代码不应该依赖调用顺序
+
+(八) 事件传播
+
+``` javascript
+//当事件目标是window对象或其他一些单独的对象时（比如XMLHttpRequest）
+//浏览器简单的通过调用对象上适当的处理程序响应事件
+//当事件目标是文档或文档元素时，情况比较复杂
+
+//在调用在目标元素上注册事件处理函数后，大部分事件会‘冒泡’到DOM树根
+//调用目标父元素的事件处理程序，然后调用在目标的祖父元素上注册事件处理程序
+//这会一直到Document对象 最后到达Window对象
+
+//事件冒泡在大量单独文档元素上注册处理程序提供了替代方案
+//即在共同的祖先元素上注册一个处理程序来处理所有的事件
+
+//例如可以在form元素上注册change事件处理程序来取代
+//在表单的每个元素上注册change事件处理程序
+
+
+//尽管发生在文档元素上的大部分事件都会冒泡，值得注意的是focus blur和scroll事件不会冒泡
+//文档元素上的load事件会冒泡，但它会在document对象上停止冒泡而不会传播到Window对象
+//只有当整个文档都加载完毕时才会触发Window的load事件
+
+//事件传播的三个阶段
+/**
+ * 1.第三阶段 事件冒泡
+ * （所谓事件冒泡即在调用目标元素的父元素的事件处理程序
+ *   然后调用在目标的祖父元素上注册的事件处理程序，会一直到Document对象，最后到Window对象）
+ * 2.第二阶段 目标对象本身的事件处理程序调用时
+ * 3.第一阶段 发生在目标处理程序调用之前，成为‘捕获’阶段
+ *   例如addEventListener()把第一个布尔值作为其第三个参数 如果是true，
+ *   那么事件处理程序被注册为捕获事件处理程序，会在事件传播的第一个阶段调用
+ *
+ *   事件传播的捕获阶段像是反向的事件冒泡
+ *   最先调用Window对象的捕获处理程序 然后是Document对象的捕获处理程序 接着是body对象的
+ *   再然后是DOM树向下直到调用事件目标的父元素的捕获事件处理程序
+ *   在目标对象本身上注册的捕获事件处理程序不会被调用
+ *
+ *   事件捕获提供了在事件没有送达目标之前查看它们的机会
+ *   事件捕获能用于程序调试，或用于后面介绍的事件取消技术
+ *   过滤掉事件从而使目标事件处理程序绝不会被调用
+ *   事件捕获捕获常用语处理鼠标拖放 因为要处理的拖放的位置不能是这个元素内部的子元素
+ *
+ */
+```
+
+
 
 
 ## 13.1 JQuery实例对象扩展`jQuery.fn.extend`
@@ -7476,10 +7846,10 @@ $input.trigger('show');     //不会触发
 
 ``` javascript
 jQuery.fn.extend({
-	on      
-	one     
-	off     
-	trigger 
+	on
+	one
+	off
+	trigger
 	triggerHandler
 })
 
@@ -7497,7 +7867,7 @@ jQuery.fn.extend({
 - 调用`$.event.add()`
 - 该函数主要是对传入参数做处理,并不做绑定事件操作
 - 调用路线:  `$().on()`(参数处理) -> `$().event.add()`(数据缓存) -> `$().event.dispatch()`(事件操作处理) -> `$().event.fix()` (事件兼容性处理) -> `$().event.special()`(特殊事件处理) -> `$().event.handlers()`(事件执行顺序的队列操作)
- 
+
 >源码
 ``` javascript
 jQuery.fn.extend({
@@ -7515,7 +7885,7 @@ jQuery.fn.extend({
 				data = data || selector;
 				selector = undefined;
 			}
-			// 仍然拆分成this.on执行 
+			// 仍然拆分成this.on执行
 			for ( type in types ) {
 				this.on( type, selector, data, types[ type ], one );
 			}
@@ -7527,7 +7897,7 @@ jQuery.fn.extend({
 			// ( types, fn )
 			fn = selector;
 			data = selector = undefined;
-		// 三个参数情况	
+		// 三个参数情况
 		} else if ( fn == null ) {
 			if ( typeof selector === "string" ) {
 				// ( types, selector, fn )
@@ -7557,7 +7927,7 @@ jQuery.fn.extend({
 				return origFn.apply( this, arguments );
 			};
 			// Use same guid so caller can remove using origFn
-			// guid 绑定事件的唯一标识 
+			// guid 绑定事件的唯一标识
 			fn.guid = origFn.guid || ( origFn.guid = jQuery.guid++ );
 		}
 		// 针对$(),可能是多个元素,进行循环操作
@@ -7608,9 +7978,9 @@ $('ul').on('click','li',{name:'ziyi2'},function(e){
 ``` javascript
 $('ul').on({
 	'click': function(){
-	}, 
+	},
 	'mouseover': function(){
-	}	
+	}
 })
 ```
 
@@ -7650,7 +8020,7 @@ jQuery.event = {
     add           //绑定事件,主要是对事件的data缓存进行操作
     remove        //取消绑定事件
     trigger       //主动触发事件
-    dispatch      //分发事件的具体操作 
+    dispatch      //分发事件的具体操作
     handlers      //函数执行顺序的操作
     props         //JQuery中的event属性共享原生JS的event属性
     fixHooks      //收集event兼容的集合
@@ -7691,24 +8061,24 @@ jQuery.event = {
 			events, t, handleObj,
 			special, handlers, type, namespaces, origType,
 			elemData = data_priv.get( elem );
-	
+
 		// Don't attach events to noData or text/comment nodes (but allow plain objects)
 		if ( !elemData ) {
 			return;
 		}
-	
+
 		// Caller can pass in an object of custom data in lieu of the handler
 		if ( handler.handler ) {
 			handleObjIn = handler;
 			handler = handleObjIn.handler;
 			selector = handleObjIn.selector;
 		}
-	
+
 		// Make sure that the handler has a unique ID, used to find/remove it later
 		if ( !handler.guid ) {
 			handler.guid = jQuery.guid++;
 		}
-	
+
 		// Init the element's event structure and main handler, if this is the first
 		if ( !(events = elemData.events) ) {
 			events = elemData.events = {};
@@ -7724,7 +8094,7 @@ jQuery.event = {
 			// Add elem as a property of the handle fn to prevent a memory leak with IE non-native events
 			eventHandle.elem = elem;
 		}
-	
+
 		// Handle multiple events separated by a space
 		types = ( types || "" ).match( core_rnotwhite ) || [""];
 		t = types.length;
@@ -7732,21 +8102,21 @@ jQuery.event = {
 			tmp = rtypenamespace.exec( types[t] ) || [];
 			type = origType = tmp[1];
 			namespaces = ( tmp[2] || "" ).split( "." ).sort();
-	
+
 			// There *must* be a type, no attaching namespace-only handlers
 			if ( !type ) {
 				continue;
 			}
-	
+
 			// If event changes its type, use the special event handlers for the changed type
 			special = jQuery.event.special[ type ] || {};
-	
+
 			// If selector defined, determine special event api type, otherwise given type
 			type = ( selector ? special.delegateType : special.bindType ) || type;
-	
+
 			// Update special based on newly reset type
 			special = jQuery.event.special[ type ] || {};
-	
+
 			// handleObj is passed to all event handlers
 			handleObj = jQuery.extend({
 				type: type,
@@ -7758,12 +8128,12 @@ jQuery.event = {
 				needsContext: selector && jQuery.expr.match.needsContext.test( selector ),
 				namespace: namespaces.join(".")
 			}, handleObjIn );
-	
+
 			// Init the event handler queue if we're the first
 			if ( !(handlers = events[ type ]) ) {
 				handlers = events[ type ] = [];
 				handlers.delegateCount = 0;
-	
+
 				// Only use addEventListener if the special events handler returns false
 				if ( !special.setup || special.setup.call( elem, data, namespaces, eventHandle ) === false ) {
 					if ( elem.addEventListener ) {
@@ -7771,32 +8141,32 @@ jQuery.event = {
 					}
 				}
 			}
-	
+
 			if ( special.add ) {
 				special.add.call( elem, handleObj );
-	
+
 				if ( !handleObj.handler.guid ) {
 					handleObj.handler.guid = handler.guid;
 				}
 			}
-	
+
 			// Add to the element's handler list, delegates in front
 			if ( selector ) {
 				handlers.splice( handlers.delegateCount++, 0, handleObj );
 			} else {
 				handlers.push( handleObj );
 			}
-	
+
 			// Keep track of which events have ever been used, for event optimization
 			jQuery.event.global[ type ] = true;
 		}
-	
+
 		// Nullify elem to prevent memory leaks in IE
 		elem = null;
-	
+
 		console.log(elemData);
 	},
-}	
+}
 ```
 
 
@@ -7947,7 +8317,7 @@ $('#div2').trigger('click.click1'); //1
 ``` javascript
 $('#div1').on('click mouseover focus',function(a) {
 	console.log('click div');
-});         
+});
 ```
 
 
@@ -7970,7 +8340,7 @@ $(function(){
        console.log('click');
    });
 });
-  
+
 //点击span元素,由于阻止冒泡,因此div1的click事件是不是触发的,不会打印click
 ```
 
@@ -8004,7 +8374,7 @@ $(function(){
 });
 
 //点击span元素, 打印顺序 1. click span 2. click1 3. click2
-//需要注意的是尽管$.event.add中已经在data缓存中把委托的放在最前面,但是如果同时委托多个.委托顺序则不会按照顺序执行.所以需要$.event.handlers函数进行执行顺序的处理 
+//需要注意的是尽管$.event.add中已经在data缓存中把委托的放在最前面,但是如果同时委托多个.委托顺序则不会按照顺序执行.所以需要$.event.handlers函数进行执行顺序的处理
 ```
 
 
@@ -8015,7 +8385,7 @@ $(function(){
 
 >源码
 
-``` javascript 
+``` javascript
 // Includes some event props shared by KeyEvent and MouseEvent
 // jquery的event属性共享原生js的event属性
 props: "altKey bubbles cancelable ctrlKey currentTarget eventPhase metaKey relatedTarget shiftKey target timeStamp view which".split(" "),
@@ -8087,7 +8457,7 @@ fix: function( event ) {
 		/原生的event属性
 		originalEvent = event,
 		fixHook = this.fixHooks[ type ];
-	
+
 	//如果fixHook不存在,则继续判断是否要做兼容性处理
 	if ( !fixHook ) {
 		this.fixHooks[ type ] = fixHook =
@@ -8097,7 +8467,7 @@ fix: function( event ) {
 			rkeyEvent.test( type ) ? this.keyHooks :
 			{};
 	}
-	
+
     //如果有需要做兼容性处理的prop属性,则放入copy,之后会加入jquery的event属性
     //this.props在$.event.fix的上面
 	copy = fixHook.props ? this.props.concat( fixHook.props ) : this.props;
@@ -8223,7 +8593,7 @@ $(function(){
     $(document).on('click',function(e) {
         console.log(e.which);       //左:1 中:得不到 右:得不到
     });
-		
+
 	$(document).on('mousedown',function(e) {
          console.log('mousedown:' + e.which);  //左:1 中:2 右:3
     })
@@ -8253,11 +8623,11 @@ $(function(){
 $(function(){
     //点击span元素,因为会冒泡,所以两者都会触发
     $('#div1').on('click',function(e) {
-        console.log('div:click');   
+        console.log('div:click');
     });
 
     $('span').on('click',function(e) {
-        console.log('span:click');      
+        console.log('span:click');
     });
 });
 
