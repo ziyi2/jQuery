@@ -8667,7 +8667,206 @@ $(function(){
 ```
 
 
+## 13.2.* `$.event.special()`
 
+事件
+- load
+- focus
+- blur
+- click 
+- beforeunload
+- mouseenter
+- mouseleave
+- focusin
+- focusout
+
+属性
+- noBuble
+- trigger
+- delegateType
+- _default
+- postDispatch
+- setup
+- teardown
+
+
+``` javascript
+//[4831]
+special: {
+	//原生不支持冒泡
+    load: {
+        // Prevent triggered image.load events from bubbling to window.load
+        // 详见内容解析一
+        noBubble: true
+    },
+    //原生不支持冒泡
+    focus: {
+        // Fire native event if possible so blur/focus sequence is correct
+        trigger: function() {
+            if ( this !== safeActiveElement() && this.focus ) {
+                this.focus();
+                return false;
+            }
+        },
+        //使用支持冒泡的光标事件来模拟focus
+        //详见(二)
+        delegateType: "focusin"
+    },
+    blur: {
+        trigger: function() {
+            if ( this === safeActiveElement() && this.blur ) {
+                this.blur();
+                return false;
+            }
+        },
+        delegateType: "focusout"
+    },
+    click: {
+        // For checkbox, fire native event so checked state will be right
+        // 让复选框选中需要做特殊处理,详见(三)
+        trigger: function() {
+            if ( this.type === "checkbox" && this.click && jQuery.nodeName( this, "input" ) ) {
+                this.click();
+                return false;
+            }
+        },
+
+        // For cross-browser consistency, don't fire native .click() on links
+        // 使用trigger时阻止a标签的默认行为,但是可以触发click监听事件,详见(四)
+        _default: function( event ) {
+            return jQuery.nodeName( event.target, "a" );
+        }
+    },
+
+    beforeunload: {
+        postDispatch: function( event ) {
+
+            // Support: Firefox 20+
+            // Firefox doesn't alert if the returnValue field is not set.
+            // 火狐浏览器不会弹出提示,所以需要处理, 详见(五)
+            // 注释掉这个语句之后火狐是不会弹提示的
+            if ( event.result !== undefined ) {
+                event.originalEvent.returnValue = event.result;
+            }
+        }
+    }
+},   
+
+
+
+// [5004] IE下独有的事件 focusin focusout原生支持冒泡操作
+// 其他浏览器通过把focusin/out看成自定义事件做兼容
+// Create "bubbling" focus and blur events
+// Support: Firefox, Chrome, Safari
+if ( !jQuery.support.focusinBubbles ) {
+	jQuery.each({ focus: "focusin", blur: "focusout" }, function( orig, fix ) {
+
+		// Attach a single capturing handler while someone wants focusin/focusout
+		var attaches = 0,
+			handler = function( event ) {
+				//模拟事件操作
+				jQuery.event.simulate( fix, event.target, jQuery.event.fix( event ), true );
+			};
+
+		jQuery.event.special[ fix ] = {
+			setup: function() {
+				if ( attaches++ === 0 ) {
+					//捕获
+					document.addEventListener( orig, handler, true );
+				}
+			},
+			teardown: function() {
+				if ( --attaches === 0 ) {
+					document.removeEventListener( orig, handler, true );
+				}
+			}
+		};
+	});
+}
+
+```
+
+>内容解析
+
+
+(一) 自动触发也支持冒泡,`jQuery`对冒泡做了特殊处理,因此要`load`原生不支持冒泡的事件要屏蔽冒泡(例如图片和window都有这个事件,则需要防止冒泡)
+
+``` javascript
+$("#div1").on('click',function() {
+   alert('div click');
+});
+
+$("span").on("click",function() {
+    alert("span click");
+});
+
+$("span").trigger("click"); //span click div click
+```
+
+(二) chrome一直弹`alert`
+
+``` javascript
+//div默认是没有focus事件的,但是jquery通过模拟支持冒泡的光标事件(focusin/focusout)来实现
+$("#div1").delegate('input','focus',function() {
+   alert('div focus');
+});
+```
+
+(三) 触发复选框的选中状态
+
+``` javascript
+<input type="checkbox">
+$("input").on('click',function() {});
+$("input").trigger('click');
+```
+
+(四) 阻止`a`标签的默认行为
+
+``` javascript
+$("a").on('click',function() {
+    alert('a click')
+});
+$("a").trigger('click'); //a click 但是页面不会跳转
+```
+
+(五) 离开页面事件的兼容性
+
+``` javascript
+$(window).on('beforeunload',function() {
+   return '你要离开页面么?';
+});
+```
+
+## 13.2.* `$.event.simulate()`
+
+- 调用`$.event.trigger` / `$.event.dispatch`
+
+>源码
+
+``` javascript
+simulate: function( type, elem, event, bubble ) {
+		// Piggyback on a donor event to simulate a different one.
+		// Fake originalEvent to avoid donor's stopPropagation, but if the
+		// simulated event prevents default then we do the same on the donor.
+		var e = jQuery.extend(
+			new jQuery.Event(),
+			event,
+			{
+				type: type,
+				isSimulated: true,
+				originalEvent: {}
+			}
+		);
+		if ( bubble ) {
+			jQuery.event.trigger( e, null, elem );
+		} else {
+			jQuery.event.dispatch.call( elem, e );
+		}
+		if ( e.isDefaultPrevented() ) {
+			event.preventDefault();
+		}
+	}
+```
 
 
 
