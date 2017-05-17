@@ -8688,6 +8688,8 @@ $(function(){
 - postDispatch
 - setup
 - teardown
+- bindType
+- handle
 
 
 ``` javascript
@@ -8752,8 +8754,6 @@ special: {
     }
 },   
 
-
-
 // [5004] IE下独有的事件 focusin focusout原生支持冒泡操作
 // 其他浏览器通过把focusin/out看成自定义事件做兼容
 // Create "bubbling" focus and blur events
@@ -8783,6 +8783,39 @@ if ( !jQuery.support.focusinBubbles ) {
 		};
 	});
 }
+
+
+// [4976]
+// Create mouseenter/leave events using mouseover/out and event-time checks
+// Support: Chrome 15+
+// 详见内容解析(六)
+jQuery.each({
+	mouseenter: "mouseover",
+	mouseleave: "mouseout"
+}, function( orig, fix ) {
+	jQuery.event.special[ orig ] = {
+		delegateType: fix,
+		bindType: fix,
+
+		handle: function( event ) {
+			//详见(六)的模拟事件
+			var ret,
+				target = this,
+				related = event.relatedTarget,
+				handleObj = event.handleObj;
+
+			// For mousenter/leave call the handler if related is outside the target.
+			// NB: No relatedTarget if the mouse left/entered the browser window
+			if ( !related || (related !== target && !jQuery.contains( target, related )) ) {
+				event.type = handleObj.origType;
+				ret = handleObj.handler.apply( this, arguments );
+				event.type = fix;
+			}
+			return ret;
+		}
+	};
+});
+
 
 ```
 
@@ -8837,6 +8870,124 @@ $(window).on('beforeunload',function() {
 });
 ```
 
+(六) 利用`mouseover/mouseout`模拟`onmouseenter/onmouseleaver`事件
+
+``` javascript
+<div id="div1" style="width: 200px;height: 200px;background: red;">
+    <div id="div2" style="width: 100px;height: 100px;background: green;"></div>
+</div>
+
+var div1 = document.getElementById('div1'),
+    div2 = document.getElementById('div2'),
+    span1 = document.getElementById('span1');
+
+div1.onmouseover= function(e) {
+    span1.innerHTML += 'over' + e.target.id;
+};
+
+div1.onmouseout = function(e) {
+    span1.innerHTML += 'out' + e.target.id;
+};
+
+//1.从body移入红色的div1, span.innerHTML = overdiv1;
+//2.从div1移入div2, span.innerHTML = overdiv1outdiv1overdiv2;
+//说明: 为什么不是overdiv1outdiv1而是overdiv1outdiv1overdiv2,因为onmouseover支持冒泡,这个是odiv2冒泡到odiv1触发的,所以结果是121
+//3.从div2移入div1, span.innerHTML = overdiv1outdiv1overdiv2outdiv2overdiv1
+//说明: outdiv2说明div2的onmouseout事件冒泡到了div1,所以触发了div1的onmouseout事件
+//4.从div1移入body, span.innerHTML = overdiv1outdiv1overdiv2outdiv2overdiv1outdiv1
+```
+有的时候这种冒泡的能力并不是我们所期望的,例如我们期望`div1`移入移出时可以实现`div2`显示状态的转变
+
+
+``` javascript
+var div1 = document.getElementById('div1'),
+    div2 = document.getElementById('div2'),
+    span1 = document.getElementById('span1');
+
+div1.onmouseover= function(e) {
+    span1.innerHTML += 'over' + e.target.id;
+    div2.style.display = "block";
+};
+
+div1.onmouseout = function(e) {
+    span1.innerHTML += 'out' + e.target.id;
+    div2.style.display = "none";
+};
+
+//在body和div1之间不停的移入移出是可以发现div2不停的显示隐藏显示隐藏效果的切换
+//但是在div1和div2之间的移入移出发现div2是一直在显示的,起始是因为div1的两个事件同时都触发了,所以我们看不出变化的效果
+```
+
+但是`onmouseenter`和`onmouseleaver`是不会冒泡的,子级不会影响父级的操作
+
+``` javascript
+div1.onmouseenter= function(e) {
+    span1.innerHTML += 'over' + e.target.id;
+    div2.style.display = "block";
+};
+
+div1.onmouseleave = function(e) {
+    span1.innerHTML += 'out' + e.target.id;
+    div2.style.display = "none";
+};
+
+//在body和div1之间不停的移入移出是可以发现div2不停的显示隐藏显示隐藏效果的切换
+//但是在div1和div2之间的移入移出发现div2是一直在显示的,但是两个事件都没有触发,因为只是在div1内部移动,而div2不会影响div1的操作
+```
+
+但是`onmouseenter`和`onmouseleaver`有兼容性问题,有特殊的浏览器不支持,而`mouseover/mouseout`所有的浏览器都支持,因此可以利用`mouseover/mouseout`来模拟`onmouseenter`和`onmouseleaver`事件,从而使子级不影响父级的操作
+
+``` javascript
+//判断el1元素是否包含el2元素,如果包含返回true
+//多数浏览器支持el1.contains(el2)方法,返回true则表示包含
+//但是火狐不支持,火狐使用el1.compareDocumentPosition(el2)方法,返回16则说明包含
+function elContains(el1, el2) {
+    return el1.contains
+        ?
+        el1 != el2 && el1.contains(el2)
+        :
+        !!(el1.compareDocumentPosition(el2) & 16);
+}
+
+
+//relatedTarget 事件属性返回与事件的目标节点相关的节点。
+//对于 mouseover 事件来说，该属性是鼠标指针移到目标节点上时所离开的那个节点。
+//对于 mouseout 事件来说，该属性是离开目标时，鼠标指针进入的节点。
+//对于其他类型的事件来说，这个属性没有用。
+
+
+div1.onmouseover= function(e) {
+
+    var a = this,
+        e = e || window.event, //兼容性处理
+        b = e.relatedTarget;
+
+    console.log(a);
+    console.log(b);
+
+    //如果a不包含b,且a不等于b,即判断是从外部移入当前元素,而不是从当前元素的内部子元素移入当前元素或不是当前元素移入内部子元素则触发
+    if(!elContains(a,b) && a!=b) {
+        span1.innerHTML += 'over' + e.target.id;
+    }
+};
+
+div1.onmouseout = function(e) {
+    var a = this,
+        e = e || window.event, //兼容性处理
+        b = e.relatedTarget;
+
+    //如果a不包含b,且a不等于b,即判断是移出当前元素,而不是从当前元素的移入当前元素的子元素或不是当前元素的子元素移入当前元素则触发
+    if(!elContains(a,b) && a!=b) {
+        span1.innerHTML += 'out' + e.target.id;
+    }
+};
+```
+
+
+
+
+
+
 ## 13.2.* `$.event.simulate()`
 
 - 调用`$.event.trigger` / `$.event.dispatch`
@@ -8867,6 +9018,13 @@ simulate: function( type, elem, event, bubble ) {
 		}
 	}
 ```
+
+
+
+
+
+
+
 
 
 
