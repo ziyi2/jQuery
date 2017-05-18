@@ -9019,8 +9019,36 @@ simulate: function( type, elem, event, bubble ) {
 	}
 ```
 
+## 13.2.* `$.event.remove()`
 
 
+>内容解析
+
+``` javascript
+var $div = $("#div"),
+    $div2 = $("#div2");
+$div.on('click.aaa',function() {
+    alert('div1 click aaa');
+})
+
+$div2.on('click.aaa',function() {
+    alert('div2 click aaa');
+})
+
+$div2.on('mouseenter.aaa',function() {
+    alert('div2 mouseenter aaa');
+})
+
+$div2.on('click',function() {
+    alert('div2 click');
+})
+
+// $div2.off('click'); //取消了所有的div2的click事件
+$div2.off('.aaa');     //取消了所有div2命名空间为aaa的事件
+```
+
+
+## 13.2.* `$.event.trigger()`
 
 
 
