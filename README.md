@@ -8063,6 +8063,7 @@ jQuery.event = {
 			elemData = data_priv.get( elem );
 
 		// Don't attach events to noData or text/comment nodes (but allow plain objects)
+		// 一般情况下都有elemData,除非是text/comment等节点
 		if ( !elemData ) {
 			return;
 		}
@@ -8075,26 +8076,32 @@ jQuery.event = {
 		}
 
 		// Make sure that the handler has a unique ID, used to find/remove it later
+		// 如果之前没有标识符,则加上事件唯一标识符
 		if ( !handler.guid ) {
 			handler.guid = jQuery.guid++;
 		}
 
 		// Init the element's event structure and main handler, if this is the first
+		// 如果elemData.events不存在,则第一次初始化这个结构
 		if ( !(events = elemData.events) ) {
 			events = elemData.events = {};
 		}
+		//如果elemData.handle不存在,则第一次初始化这个handle
 		if ( !(eventHandle = elemData.handle) ) {
+			//eventHandle是事件监听的执行函数
 			eventHandle = elemData.handle = function( e ) {
 				// Discard the second event of a jQuery.event.trigger() and
 				// when an event is called after a page has unloaded
+				// 如果触发过jQuery.event.trigger()则不会再触发了
 				return typeof jQuery !== core_strundefined && (!e || jQuery.event.triggered !== e.type) ?
+					//执行分发事件,注意这里的arguments = [e] e是原生的event事件对象,将原生的event事件对象传入了dispatch函数
 					jQuery.event.dispatch.apply( eventHandle.elem, arguments ) :
 					undefined;
 			};
 			// Add elem as a property of the handle fn to prevent a memory leak with IE non-native events
 			eventHandle.elem = elem;
 		}
-
+		// types可能是多个事件类型,详见(四),将它们转换成数组
 		// Handle multiple events separated by a space
 		types = ( types || "" ).match( core_rnotwhite ) || [""];
 		t = types.length;
@@ -8109,6 +8116,7 @@ jQuery.event = {
 			}
 
 			// If event changes its type, use the special event handlers for the changed type
+			// 如果有兼容性则需要添加兼容性处理的函数
 			special = jQuery.event.special[ type ] || {};
 
 			// If selector defined, determine special event api type, otherwise given type
@@ -8136,6 +8144,7 @@ jQuery.event = {
 
 				// Only use addEventListener if the special events handler returns false
 				if ( !special.setup || special.setup.call( elem, data, namespaces, eventHandle ) === false ) {
+					//添加事件处理函数,这是核心
 					if ( elem.addEventListener ) {
 						elem.addEventListener( type, eventHandle, false );
 					}
@@ -8154,6 +8163,7 @@ jQuery.event = {
 			if ( selector ) {
 				handlers.splice( handlers.delegateCount++, 0, handleObj );
 			} else {
+				//elemData数据缓存
 				handlers.push( handleObj );
 			}
 
@@ -8162,6 +8172,7 @@ jQuery.event = {
 		}
 
 		// Nullify elem to prevent memory leaks in IE
+		// 防止内存泄漏
 		elem = null;
 
 		console.log(elemData);
@@ -8321,7 +8332,75 @@ $('#div1').on('click mouseover focus',function(a) {
 ```
 
 
-## 13.2.* `$.event.dispatch()`
+## 13.2.2 `$.event.dispatch()`
+
+>源码
+
+``` javascript
+dispatch: function( event ) {
+
+	// Make a writable jQuery.Event from the native event object
+	// 从$.event.add中接收了原生的event对象,将其传入$.event.fix函数处理成$的event对象
+	// 这里返回的event是做过兼容性处理的event对象
+	event = jQuery.event.fix( event );
+
+	var i, j, ret, matched, handleObj,
+		handlerQueue = [],
+		args = core_slice.call( arguments ),
+		handlers = ( data_priv.get( this, "events" ) || {} )[ event.type ] || [],
+		special = jQuery.event.special[ event.type ] || {};
+
+	// Use the fix-ed jQuery.Event rather than the (read-only) native event
+	args[0] = event;
+	event.delegateTarget = this;
+
+	// Call the preDispatch hook for the mapped type, and let it bail if desired
+	if ( special.preDispatch && special.preDispatch.call( this, event ) === false ) {
+		return;
+	}
+
+	// Determine handlers
+	handlerQueue = jQuery.event.handlers.call( this, event, handlers );
+
+	// Run delegates first; they may want to stop propagation beneath us
+	i = 0;
+	while ( (matched = handlerQueue[ i++ ]) && !event.isPropagationStopped() ) {
+		event.currentTarget = matched.elem;
+
+		j = 0;
+		while ( (handleObj = matched.handlers[ j++ ]) && !event.isImmediatePropagationStopped() ) {
+
+			// Triggered event must either 1) have no namespace, or
+			// 2) have namespace(s) a subset or equal to those in the bound event (both can have no namespace).
+			if ( !event.namespace_re || event.namespace_re.test( handleObj.namespace ) ) {
+
+				event.handleObj = handleObj;
+				event.data = handleObj.data;
+				//这里是真正的执行,注意args就是处理后的event事件对象
+				//如果有兼容性则走第一个,否则走传入的$().on(type,handler)的handler
+				ret = ( (jQuery.event.special[ handleObj.origType ] || {}).handle || handleObj.handler )
+						.apply( matched.elem, args );
+
+				//如果事件执行函数return false,则阻止默认行为和冒泡,详见(一)
+				if ( ret !== undefined ) {
+					if ( (event.result = ret) === false ) {
+						event.preventDefault();
+						event.stopPropagation();
+					}
+				}
+			}
+		}
+	}
+
+	// Call the postDispatch hook for the mapped type
+	if ( special.postDispatch ) {
+		special.postDispatch.call( this, event );
+	}
+
+	return event.result;
+},
+```
+
 
 >内容解析
 
@@ -8346,9 +8425,59 @@ $(function(){
 
 
 
-## 13.2.* `$.event.handlers()`
+## 13.2.3 `$.event.handlers()`
 
 - 作用是实现事件队列
+
+``` javascript
+handlers: function( event, handlers ) {
+	var i, matches, sel, handleObj,
+		handlerQueue = [],
+		delegateCount = handlers.delegateCount,
+		cur = event.target;
+
+	// Find delegate handlers
+	// Black-hole SVG <use> instance trees (#13180)
+	// Avoid non-left-click bubbling in Firefox (#3861)
+	if ( delegateCount && cur.nodeType && (!event.button || event.type !== "click") ) {
+
+		for ( ; cur !== this; cur = cur.parentNode || this ) {
+
+			// Don't process clicks on disabled elements (#6911, #8165, #11382, #11764)
+			if ( cur.disabled !== true || event.type !== "click" ) {
+				matches = [];
+				for ( i = 0; i < delegateCount; i++ ) {
+					handleObj = handlers[ i ];
+
+					// Don't conflict with Object.prototype properties (#13203)
+					sel = handleObj.selector + " ";
+
+					if ( matches[ sel ] === undefined ) {
+						matches[ sel ] = handleObj.needsContext ?
+							jQuery( sel, this ).index( cur ) >= 0 :
+							jQuery.find( sel, this, null, [ cur ] ).length;
+					}
+					if ( matches[ sel ] ) {
+						matches.push( handleObj );
+					}
+				}
+				if ( matches.length ) {
+					handlerQueue.push({ elem: cur, handlers: matches });
+				}
+			}
+		}
+	}
+
+	// Add the remaining (directly-bound) handlers
+	// 没有事件委托的情况下走这里
+	if ( delegateCount < handlers.length ) {
+		//放入需要执行的事件队列
+		handlerQueue.push({ elem: this, handlers: handlers.slice( delegateCount ) });
+	}
+
+	return handlerQueue;
+},
+```
 
 >内容解析
 
@@ -8378,7 +8507,7 @@ $(function(){
 ```
 
 
-## 13.2.* `$.event.fix()`
+## 13.2.4 `$.event.fix()`
 
 - `mouseHooks`
 - `keyHooks`
@@ -8454,7 +8583,7 @@ fix: function( event ) {
 	// Create a writable copy of the event object and normalize some properties
 	var i, prop, copy,
 		type = event.type,
-		/原生的event属性
+		//原生的event属性
 		originalEvent = event,
 		fixHook = this.fixHooks[ type ];
 
@@ -8667,7 +8796,7 @@ $(function(){
 ```
 
 
-## 13.2.* `$.event.special()`
+## 13.2.5 `$.event.special()`
 
 事件
 - load
@@ -9049,6 +9178,7 @@ $div2.off('.aaa');     //取消了所有div2命名空间为aaa的事件
 
 
 ## 13.2.* `$.event.trigger()`
+
 
 
 
