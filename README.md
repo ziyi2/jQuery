@@ -1,72 +1,6 @@
+## 0. 前言
 
-## 0.了解jQuery的这些属性和方法么？
-
->注意:  本版本jQuery只支持IE9以上的浏览器
-
-``` javascript
- /*实例对象*/
- $().jquery                           # 版本号属性
- $().length                           # 匹配的DOM元素个数
- $().context                          # 上下文环境
- $().selector                         # jQuery对象的初始化选择器
- $().prevObject                       # 当前入栈的jQuery实例对象
- $().constructor()                    # jQuery构造函数
- $().toArray()                        # DOM元素集(类数组对象)转数组
- $().get()                            # $()[num],当不传参数时调用$().toArray()
- $().pushStack()                      # 堆栈
- $().slice()                          # DOM集合的截取(使用了堆栈方法,返回的仍然是$而不是特定的DOM元素对象)
- $().ready()                          # DOM加载
- $().first()                          # 集合的第一项(相当于在栈上又堆了一层,仍然是jQuery实例对象)
- $().last()                           # 集合的最后一项(相当于在栈上又堆了一层,仍然是jQuery实例对象)
- $().eq()                             # 获取特定的DOM集合(使用了堆栈方法,返回的仍然是$而不是特定的DOM元素对象)
- $().end():                           # 栈回溯,可以看做popStack(),
- $().map()                            # 遍历集合并返回新集合(使用了堆栈方法)
- $().push()                           # 内部增加性能使用(不建议对外)
- $().sort()                           # 内部增加性能使用(不建议对外)
- $().splice()                         # 内部增加性能使用(不建议对外)
- $(function(){})                      # DOM加载
-
-
- /*扩展对象*/
- $.fn.extend()
- $.extend()                           # 扩展jQuery静态方法\实例方法以及扩展自定义对象的方法
-
-
- /*静态方法(工具方法)*/
- $.expando                            # 字符串唯一性
- $.noConflict()                       # $变量防冲突
- $.ready()                            # DOM加载(内部使用,工具方法)
- $.holdReady()                        # DOM延迟加载(例如要先执行异步加载的JS文件)
- $.isFunction()                       # 检测是否为函数
- $.isArray()                          # 内部使用(有兼容性问题)
- $.isWondow()                         # 检测是否为Window对象
- $.isNumeric()                        # 检测是否为数字
- $.type()                             # 引用类型和基本类型检测
- $.isPlainObject()                    # 检测是否是对象字面量
- $.isEmptyObject()                    # 检测是否是空的对象字面liang量
- $.error()                            # 抛弃异常(内部工具方法)
- $.parseHTML()                      　# 将字符串转换成DOM数组
- $.parseJSON()                     　 # JSON.parse()(内部工具方法)
- $.parseXML()                         #
- $.noop()                             # 空函数
- $.globalEval()          　　　　　    #　全局eval()
- $.camelCase()            　　　　　　  # 转驼峰
- $.nodeName()                         # 小写的节点名称
- $.each()                             # 遍历(数组或类数组对象)
- $.trim()                             # 去除首尾空字符(内部)
- $.makeArray()                        # 对外是转化为数组,对内可以转化为类数组对象
- $.inArray()                          # 索引元素的位置
- $.merge()                            # 对外是数组合并,对内可以将数组合并到类数组对象
- $.grep()                             # 过滤数组,返回新数组
- $.map()                              # 遍历和修改数组元素的内容
- $.guid                               # 绑定事件函数的唯一标识符
- $.proxy()                            # 改变绑定事件的this指向
- $.access()                           # 多函数工具方法(内部)
- $.now()                              # 获取当前时间的毫秒数
- $.swap()                             # 交换css样式
-```
-
-
+这里加入了很多对于原生`JavaScript`的理解,忽略了`Sizzle`(它可以单独抽离出来使用`Sizzle.js`框架)选择器的源码分析,同时由于`13.事件操作`源码相对比较复杂,只是粗略的进行了源码的调试和说明,只是对于`Jquery`如何监听事件以及取消监听的原理以及代码执行顺序和兼容性问题处理有了个大致了解,后续有空会继续深入分析.
 
 ## 1. 总体架构
 
@@ -7986,8 +7920,69 @@ $('ul').on({
 
 
 ## 13.1.2 `$().one()`
+
+>源码
+``` javascript
+one: function( types, selector, data, fn ) {
+	//最后一个参数1很重要
+	//调用$().off()
+	//调用事件处理函数
+	return this.on( types, selector, data, fn, 1 );
+},
+```
+
 ## 13.1.3 `$().off()`
+- 调用`$.event.remove()`
+
+```javascript
+off: function( types, selector, fn ) {
+	var handleObj, type;
+		if ( types && types.preventDefault && types.handleObj ) {
+			// ( event )  dispatched jQuery.Event
+			handleObj = types.handleObj;
+			jQuery( types.delegateTarget ).off(
+				handleObj.namespace ? handleObj.origType + "." + handleObj.namespace : handleObj.origType,
+				handleObj.selector,
+				handleObj.handler
+			);
+			return this;
+		}
+		if ( typeof types === "object" ) {
+			// ( types-object [, selector] )
+			for ( type in types ) {
+				this.off( type, selector, types[ type ] );
+			}
+			return this;
+		}
+		if ( selector === false || typeof selector === "function" ) {
+			// ( types [, fn] )
+			fn = selector;
+			selector = undefined;
+		}
+		if ( fn === false ) {
+			fn = returnFalse;
+		}
+		//遍历DOM集合
+		return this.each(function() {
+			jQuery.event.remove( this, types, fn, selector );
+		});
+	},
+```
+
 ## 13.1.4 `$().trigger()`
+
+- 调用`$.event.trigger()`
+
+>源码
+
+``` javascript
+trigger: function( type, data ) {
+	//遍历选中的DOM集合,调用$.event.trigger()
+	return this.each(function() {
+		jQuery.event.trigger( type, data, this );
+	});
+},
+```
 
 >内容解析
 
@@ -8002,6 +7997,20 @@ $('#input').trigger('focus');				//主动触发focus事件,光标自动定位到
 ```
 
 ## 13.1.5 `$().triggerHandler()`
+
+>源码
+
+``` javascript
+triggerHandler: function( type, data ) {
+	var elem = this[0];
+	if ( elem ) {
+		//参数true就是用于阻止触发事件的默认行为
+		return jQuery.event.trigger( type, data, elem, true );
+	}
+}
+```
+
+>内容解析
 
 ``` javascript
 $('#input').focus(function() {
@@ -9113,11 +9122,148 @@ div1.onmouseout = function(e) {
 ```
 
 
+## 13.2.6 `$.event.trigger()`
+
+>源码
+
+``` javascript
+trigger: function( event, data, elem, onlyHandlers ) {
+	var i, cur, tmp, bubbleType, ontype, handle, special,
+		eventPath = [ elem || document ],
+		type = core_hasOwn.call( event, "type" ) ? event.type : event,
+		namespaces = core_hasOwn.call( event, "namespace" ) ? event.namespace.split(".") : [];
+
+	cur = tmp = elem = elem || document;
+
+	// Don't do events on text and comment nodes
+	// text和注释节点return
+	if ( elem.nodeType === 3 || elem.nodeType === 8 ) {
+		return;
+	}
+
+	// focus/blur morphs to focusin/out; ensure we're not firing them right now
+	if ( rfocusMorph.test( type + jQuery.event.triggered ) ) {
+		return;
+	}
+
+	if ( type.indexOf(".") >= 0 ) {
+		// Namespaced trigger; create a regexp to match event type in handle()
+		namespaces = type.split(".");
+		type = namespaces.shift();
+		namespaces.sort();
+	}
+	ontype = type.indexOf(":") < 0 && "on" + type;
+
+	// Caller can pass in a jQuery.Event object, Object, or just an event type string
+	// 处理event,生成jquery的event对象
+	event = event[ jQuery.expando ] ?
+		event :
+		new jQuery.Event( type, typeof event === "object" && event );
+
+	// Trigger bitmask: & 1 for native handlers; & 2 for jQuery (always true)
+	event.isTrigger = onlyHandlers ? 2 : 3;
+	event.namespace = namespaces.join(".");
+	event.namespace_re = event.namespace ?
+		new RegExp( "(^|\\.)" + namespaces.join("\\.(?:.*\\.|)") + "(\\.|$)" ) :
+		null;
+
+	// Clean up the event in case it is being reused
+	event.result = undefined;
+	if ( !event.target ) {
+		event.target = elem;
+	}
+
+	// Clone any incoming data and prepend the event, creating the handler arg list
+	data = data == null ?
+		[ event ] :
+		jQuery.makeArray( data, [ event ] );
+
+	// Allow special events to draw outside the lines
+	special = jQuery.event.special[ type ] || {};
+	if ( !onlyHandlers && special.trigger && special.trigger.apply( elem, data ) === false ) {
+		return;
+	}
+
+	// Determine event propagation path in advance, per W3C events spec (#9951)
+	// Bubble up to document, then to window; watch for a global ownerDocument var (#9724)
+	// 冒泡事件处理
+	if ( !onlyHandlers && !special.noBubble && !jQuery.isWindow( elem ) ) {
+		
+		bubbleType = special.delegateType || type;
+		//一直找寻父节点
+		if ( !rfocusMorph.test( bubbleType + type ) ) {
+			cur = cur.parentNode;
+		}
+		for ( ; cur; cur = cur.parentNode ) {
+			eventPath.push( cur );
+			tmp = cur;
+		}
+
+		// Only add window if we got to document (e.g., not plain obj or detached DOM)
+		if ( tmp === (elem.ownerDocument || document) ) {
+			eventPath.push( tmp.defaultView || tmp.parentWindow || window );
+		}
+	}
+
+	// Fire handlers on the event path
+	i = 0;
+	while ( (cur = eventPath[i++]) && !event.isPropagationStopped() ) {
+
+		event.type = i > 1 ?
+			bubbleType :
+			special.bindType || type;
+
+		// jQuery handler
+		// 获取data中的handler句柄
+		handle = ( data_priv.get( cur, "events" ) || {} )[ event.type ] && data_priv.get( cur, "handle" );
+		if ( handle ) {
+			//这里是真正的执行函数,data是jquery生成的event事件对象
+			handle.apply( cur, data );
+		}
+
+		// Native handler
+		handle = ontype && cur[ ontype ];
+		if ( handle && jQuery.acceptData( cur ) && handle.apply && handle.apply( cur, data ) === false ) {
+			event.preventDefault();
+		}
+	}
+	event.type = type;
+
+	// If nobody prevented the default action, do it now
+	if ( !onlyHandlers && !event.isDefaultPrevented() ) {
+
+		if ( (!special._default || special._default.apply( eventPath.pop(), data ) === false) &&
+			jQuery.acceptData( elem ) ) {
+
+			// Call a native DOM method on the target with the same name name as the event.
+			// Don't do default actions on window, that's where global variables be (#6170)
+			if ( ontype && jQuery.isFunction( elem[ type ] ) && !jQuery.isWindow( elem ) ) {
+
+				// Don't re-trigger an onFOO event when we call its FOO() method
+				tmp = elem[ ontype ];
+
+				if ( tmp ) {
+					elem[ ontype ] = null;
+				}
+
+				// Prevent re-triggering of the same event, since we already bubbled it above
+				jQuery.event.triggered = type;
+				elem[ type ]();
+				jQuery.event.triggered = undefined;
+
+				if ( tmp ) {
+					elem[ ontype ] = tmp;
+				}
+			}
+		}
+	}
+
+	return event.result;
+},
+```
 
 
-
-
-## 13.2.* `$.event.simulate()`
+## 13.2.7 `$.event.simulate()`
 
 - 调用`$.event.trigger` / `$.event.dispatch`
 
@@ -9148,7 +9294,83 @@ simulate: function( type, elem, event, bubble ) {
 	}
 ```
 
-## 13.2.* `$.event.remove()`
+## 13.2.8 `$.event.remove()`
+
+
+``` javascript
+// Detach an event or set of events from an element
+remove: function( elem, types, handler, selector, mappedTypes ) {
+	var j, origCount, tmp,
+		events, t, handleObj,
+		special, handlers, type, namespaces, origType,
+		elemData = data_priv.hasData( elem ) && data_priv.get( elem );
+
+	if ( !elemData || !(events = elemData.events) ) {
+		return;
+	}
+
+	// Once for each type.namespace in types; type may be omitted
+	types = ( types || "" ).match( core_rnotwhite ) || [""];
+	t = types.length;
+	while ( t-- ) {
+		tmp = rtypenamespace.exec( types[t] ) || [];
+		type = origType = tmp[1];
+		namespaces = ( tmp[2] || "" ).split( "." ).sort();
+
+		// Unbind all events (on this namespace, if provided) for the element
+		if ( !type ) {
+			for ( type in events ) {
+				jQuery.event.remove( elem, type + types[ t ], handler, selector, true );
+			}
+			continue;
+		}
+
+		special = jQuery.event.special[ type ] || {};
+		type = ( selector ? special.delegateType : special.bindType ) || type;
+		handlers = events[ type ] || [];
+		tmp = tmp[2] && new RegExp( "(^|\\.)" + namespaces.join("\\.(?:.*\\.|)") + "(\\.|$)" );
+
+		// Remove matching events
+		origCount = j = handlers.length;
+		while ( j-- ) {
+			handleObj = handlers[ j ];
+
+			if ( ( mappedTypes || origType === handleObj.origType ) &&
+				( !handler || handler.guid === handleObj.guid ) &&
+				( !tmp || tmp.test( handleObj.namespace ) ) &&
+				( !selector || selector === handleObj.selector || selector === "**" && handleObj.selector ) ) {
+				handlers.splice( j, 1 );
+
+				if ( handleObj.selector ) {
+					handlers.delegateCount--;
+				}
+				if ( special.remove ) {
+					special.remove.call( elem, handleObj );
+				}
+			}
+		}
+
+		// Remove generic event handler if we removed something and no more handlers exist
+		// (avoids potential for endless recursion during removal of special event handlers)
+		if ( origCount && !handlers.length ) {
+			if ( !special.teardown || special.teardown.call( elem, namespaces, elemData.handle ) === false ) {
+				jQuery.removeEvent( elem, type, elemData.handle );
+			}
+			
+			//删除data缓存中的事件
+			delete events[ type ];
+		}
+	}
+
+	// Remove the expando if it's no longer used
+	// 如果data中的events为空
+	if ( jQuery.isEmptyObject( events ) ) {
+		//删除data对应的缓存
+		delete elemData.handle;
+		data_priv.remove( elem, "events" );
+	}
+},
+```
 
 
 >内容解析
@@ -9177,7 +9399,12 @@ $div2.off('.aaa');     //取消了所有div2命名空间为aaa的事件
 ```
 
 
-## 13.2.* `$.event.trigger()`
+
+
+
+
+
+
 
 
 
