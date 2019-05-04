@@ -358,7 +358,7 @@ $('h1').click(function() {
     $('strong',this).css('color','blue');   //this指代h1 限定查找范围
 });
 //$('h1')因为没有指定上下文,所以调用浏览器原生方法document.getElementById方法查找属性为id的元素
-//$('strong',this)因为指定了上下文,则通过jQuery的.find()方法查找,因此等价于$('strong').find('h1')
+//$('strong',this)因为指定了上下文,则通过jQuery的.find()方法查找,因此等价于$('h1').find('strong')
 ```
 
 (四)、`$.parseHTML`、`$.merge`
