@@ -2,6 +2,10 @@
 
 这里加入了很多对于原生`JavaScript`的理解,忽略了`Sizzle`选择器(它可以单独抽离出来使用`Sizzle.js`框架)的源码分析,同时由于`13.事件操作`源码相对比较复杂,只是粗略的进行了源码的调试和说明,对于`Jquery`如何监听事件以及取消监听的原理,代码执行顺序和兼容性问题处理有了粗略理解,后续有空会继续深入分析源码的实现原理.
 
+## 完整版
+
+- [jQuery 2.0.3源码分析](https://github.com/ziyi2/jQuery/blob/master/jQuery.md)
+
 ## 1. 总体架构
 
 - [自执行匿名函数](https://github.com/ziyi2/jQuery/blob/master/%E6%80%BB%E4%BD%93%E6%9E%B6%E6%9E%84.md#1-1-%E8%87%AA%E6%89%A7%E8%A1%8C%E5%8C%BF%E5%90%8D%E5%87%BD%E6%95%B0)
